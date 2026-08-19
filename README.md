@@ -1,3 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>🜲 THE_S Banner</title>
+  <style>
+    body {
+      background: #0a0a0a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .banner {
+      border: 4px solid #ff1a1a; /* Rouge vif */
+      background: linear-gradient(145deg, #1a1a1a, #111);
+      padding: 30px 60px;
+      border-radius: 12px;
+      box-shadow: 
+        0 0 25px rgba(255, 26, 26, 0.6),
+        inset 0 0 20px rgba(255, 215, 0, 0.1);
+      text-align: center;
+      position: relative;
+    }
+
+    .banner::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      border-radius: 14px;
+      background: linear-gradient(45deg, #ff1a1a, #ffd700, #ff1a1a);
+      z-index: -1;
+      filter: blur(8px);
+      opacity: 0.7;
+    }
+
+    .symbol {
+      font-size: 42px;
+      color: #ffd700;
+      text-shadow: 0 0 15px #ffd700, 0 0 30px #ffaa00;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .title {
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: 8px;
+      color: #ffd700;
+      text-shadow: 
+        0 0 10px #ffd700,
+        0 0 20px #ffaa00,
+        0 0 40px #ff8800;
+      margin: 0;
+      background: linear-gradient(90deg, #ffd700, #ffec8b, #ffd700);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      margin-top: 12px;
+      font-size: 14px;
+      letter-spacing: 4px;
+      color: #ff4d4d;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="banner">
+    <span class="symbol">🜲</span>
+    <h1 class="title">THE_S</h1>
+    <div class="subtitle">Premium • Exclusive</div>
+  </div>
+</body>
+</html>
 # 🜲THE_S
 Tunnel Pro
 - 🜲THE_S Tunnel Pro — Free Script

@@ -59,7 +59,7 @@ clear
 echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
 echo -e "${LN}┃${NC} ${BG}                  ZIVPN ACCOUNT                 ${NC} ${LN}┃${NC}"
 echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
+echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━🜲THE_S━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
 echo -e "${LN}┃${NC}  ${GREEN}User $user added successfully!${NC}"
 echo -e "${LN}┃${NC}"
 echo -e "${LN}┃${NC}  IPV4      : $MYIP"
@@ -94,7 +94,8 @@ i=1
 while read -r line; do
 username=$(echo "$line" | awk '{print $1}')
 password=$(echo "$line" | awk '{print $2}')
-expiry=$(echo "$line" | awk '{print $3}' | tr -d '')
+expiry=$(echo "$line" | awk '{print $3}' | tr -d '
+')
 printf "${LN}┃ %-5s %-15s %-15s %-10s ${NC}
 " "$i" "$username" "$password" "$expiry"
 ((i++))
@@ -145,7 +146,8 @@ i=1
 while read -r line; do
 username=$(echo "$line" | awk '{print $1}')
 password=$(echo "$line" | awk '{print $2}')
-expiry=$(echo "$line" | awk '{print $3}' | tr -d '')
+expiry=$(echo "$line" | awk '{print $3}' | tr -d '
+')
 printf "${LN}┃ %-5s %-15s %-15s %-10s ${NC}
 " "$i" "$username" "$password" "$expiry"
 ((i++))
@@ -163,7 +165,8 @@ echo -e "  ${RD}Username '$user' not found.${NC}"
 read -n 1 -s -r -p "  Press any key..."
 menu_zivpn
 fi
-current_exp=$(echo "$line" | awk '{print $3}' | tr -d '')
+current_exp=$(echo "$line" | awk '{print $3}' | tr -d '
+')
 read -rp "  Enter additional days: " add_days
 if [[ -z "$add_days" || ! "$add_days" =~ ^[0-9]+$ || "$add_days" -le 0 ]]; then
 echo -e "  ${RD}Invalid number of days.${NC}"
@@ -222,7 +225,7 @@ clear
 echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
 echo -e "${LN}┃${NC} ${BG}                  ZIVPN MENU                    ${NC} ${LN}┃${NC}"
 echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
+echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━🜲THE_S━━━━━━━━━━━━━━━━━━━━━┓${NC}"
 echo -e "${LN}┃${NC} [01] • Create Account      [03] • Delete Account"
 echo -e "${LN}┃${NC} [02] • Extend Account      [04] • Account List"
 echo -e "${LN}┃${NC} "

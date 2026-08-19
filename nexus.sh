@@ -49,16 +49,6 @@ prepare_env() {
 
 function show_tns() {
     clear
-    ╔══════════════════════════════════════╗
-║  🜲  T H E _ S                        ║
-║                                      ║
-║  ████████╗██╗  ██╗███████╗  ███████╗ ║
-║  ╚══██╔══╝██║  ██║██╔════╝  ██╔════╝ ║
-║     ██║   ███████║█████╗    ███████╗ ║
-║     ██║   ██╔══██║██╔══╝    ╚════██║ ║
-║     ██║   ██║  ██║███████╗  ███████║ ║
-║     ╚═╝   ╚═╝  ╚═╝╚══════╝  ╚══════╝ ║
-╚══════════════════════════════════════╝
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
     echo -e "${LN}┃${NC} ${BG}            TERMS & CONDITIONS PANEL            ${NC} ${LN}┃${NC}"
     echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
@@ -68,7 +58,7 @@ function show_tns() {
     echo -e "${LN}┃${NC} [*] Please read the terms below carefully"
     echo -e "${LN}┃${NC} [*] 🜲THE_S TUNNEL PRO is provided as-is, no warranties."
     echo -e "${LN}┃${NC} [*] Do not use this service for illegal activities."
-    echo -e "${LN}┃${NC} [*] NEXUS TUNNEL PRO is not liable for data loss or leaks."
+    echo -e "${LN}┃${NC} [*] 🜲THE_STUNNEL PRO is not liable for data loss or leaks."
     echo -e "${LN}┃${NC} [*] You must follow all applicable laws."
     echo -e "${LN}┃${NC} [*] Terms may change anytime without notice."
     echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━●${NC}"

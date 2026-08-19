@@ -8,7 +8,7 @@ export RD='\033[31m'
 export MYIP=$(wget -qO- ipv4.icanhazip.com)
 
 # --- CONFIGURATION DU DÉPÔT CENTRAL (CORRIGÉ) ---
-readonly SERVER_HOST="https://raw.githubusercontent.com/RootNexTPro/nexTPro-ScriptAll/main"
+readonly SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-jpg/THE_S237-/main"
 readonly TIMEZONE="Asia/Kuala_Lumpur"
 
 check_os() {
@@ -189,7 +189,7 @@ run_scripts() {
         if wget -q "$url" -O "$script"; then
             chmod +x "$script"
             echo "[INFO] Running $script..."
-            ./"$script"
+            ./$script
         else
             echo "[ERROR] Failed to download $script from $url"
         fi
@@ -267,7 +267,7 @@ restart_services() {
         if systemctl list-unit-files | grep -q "^$svc.service"; then
             echo "[INFO] Restarting $svc..."
             systemctl enable "$svc" --now || echo "[WARN] Failed to enable $svc"
-            systemctl restart "$svc" || echo "[WARN] Failed to restart $svc"
+            systemctl.restart "$svc" || echo "[WARN] Failed to restart $svc"
         fi
     done
     echo "[INFO] All services have been enabled and restarted successfully."

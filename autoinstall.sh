@@ -1,7 +1,7 @@
 #!/bin/bash
 clear
 echo -e "\e[36m====================================================\e[0m"
-echo -e "\e[36m    DÉMARRAGE DE L'INSTALLATION: NEXUS TUNNEL PRO   \e[0m"
+echo -e "\e[36m    DÉMARRAGE DE L'INSTALLATION: 🜲THE_S TUNNEL PRO   \e[0m"
 echo -e "\e[36m====================================================\e[0m"
 
 # 1. Préparation des outils vitaux

@@ -48,15 +48,21 @@ prepare_env() {
 }
 
 function show_tns() {
-    clear
+    clear🜲
+████████╗██╗  ██╗███████╗    ███████╗
+╚══██╔══╝██║  ██║██╔════╝    ██╔════╝
+   ██║   ███████║█████╗      ███████╗
+   ██║   ██╔══██║██╔══╝      ╚════██║
+   ██║   ██║  ██║███████╗    ███████║
+   ╚═╝   ╚═╝  ╚═╝╚══════╝    ╚══════╝
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
     echo -e "${LN}┃${NC} ${BG}            TERMS & CONDITIONS PANEL            ${NC} ${LN}┃${NC}"
     echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${LN}┃${NC} ${GR}Welcome to NEXUS TUNNEL PRO Services!${NC}"
+    echo -e "${LN}┃${NC} ${GR}Welcome to 🜲THE_S TUNNEL PRO Services!${NC}"
     echo -e "${LN}┃${NC}"
     echo -e "${LN}┃${NC} [*] Please read the terms below carefully"
-    echo -e "${LN}┃${NC} [*] NEXUS TUNNEL PRO is provided as-is, no warranties."
+    echo -e "${LN}┃${NC} [*] 🜲THE_S TUNNEL PRO is provided as-is, no warranties."
     echo -e "${LN}┃${NC} [*] Do not use this service for illegal activities."
     echo -e "${LN}┃${NC} [*] NEXUS TUNNEL PRO is not liable for data loss or leaks."
     echo -e "${LN}┃${NC} [*] You must follow all applicable laws."
@@ -121,7 +127,7 @@ function add_domain() {
             echo -e "${LN}┃${NC} ${RD}VPS public IP is : $MYIP ${NC}"
             echo -e "${LN}┃${NC} ${RD}Please fix your DNS settings and try again.${NC}"
             echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-            echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━●${NC}"
+            echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━🜲THE_S━━━━━━━━━━━━━━━━━━━━●${NC}"
             echo ""
             read -n 1 -s -r -p " Press any key to return to the menu..."
             add_domain
@@ -147,7 +153,7 @@ function add_domain() {
     echo -e "${LN}┃${NC} Domain has been set successfully!"
     echo -e "${LN}┃${NC} Current Domain: ${domain}"
     echo -e "${LN}┃${NC}                                                    "
-    echo -e "${LN}┃${NC} AutoScript Xray by Nexus Team"
+    echo -e "${LN}┃${NC} AutoScript Xray by 🜲THE_S Team"
     echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
     echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━●${NC}"
     sleep 4
@@ -278,15 +284,15 @@ doty_completed() {
     domain=$(cat /etc/xray/domain)
     MYIP=$(wget -qO- ipv4.icanhazip.com)
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${LN}┃${NC} ${BG}              INSTALLATION COMPLETE               ${NC} ${LN}┃${NC}"
+    echo -e "${LN}┃${NC} ${BG}         INSTALLATION DE 🜲THE_SCOMPLETE               ${NC} ${LN}┃${NC}"
     echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${LN}┃${NC} ${GR}Congratulations! NEXUS TUNNEL PRO is ready.${NC}"
+    echo -e "${LN}┃${NC} ${GR}Congratulations! 🜲THE_S TUNNEL PRO is ready.${NC}"
     echo -e "${LN}┃${NC}"
     echo -e "${LN}┃${NC} Domain: ${domain}"
     echo -e "${LN}┃${NC} VPS IP: ${MYIP}"
     echo -e "${LN}┃${NC} Enjoy secure VPN services!${NC}"
-    echo -e "${LN}┃${NC} AutoScript Xray by Nexus Team"
+    echo -e "${LN}┃${NC} AutoScript Xray by 🜲THE_S Team"
     echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
     echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━●${NC}"
     echo

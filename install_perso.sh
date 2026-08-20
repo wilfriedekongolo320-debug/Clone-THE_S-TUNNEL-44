@@ -1,5 +1,18 @@
 #!/bin/bash
+
+# ✓ VÉRIFICATION ROOT - Le script doit être exécuté en tant que root
+if [ "$EUID" -ne 0 ]; then
+    echo "❌ ERREUR: Ce script doit être exécuté en tant que ROOT"
+    echo "   Utilisez: sudo bash install_perso.sh"
+    exit 1
+fi
+
 GITHUB_RAW="https://raw.githubusercontent.com/wilfriedekongolo320-jpg/THE_S237-/main"
+
+echo "--- Vérification ROOT: OK ---"
+echo "--- Désactivation SSH/SFTP pendant l'installation ---"
+systemctl stop ssh 2>/dev/null
+systemctl disable ssh 2>/dev/null
 
 echo "--- Nettoyage et arrêt des services conflictuels ---"
 systemctl stop nginx stunnel5 badvpn@7100 badvpn@7200 badvpn@7300 xray ssh 2>/dev/null

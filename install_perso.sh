@@ -40,6 +40,11 @@ for file in "${FILES[@]}"; do
     chmod +x "/usr/bin/$cmd_name"
 done
 
+echo "--- Configuration de la bannière SSH depuis le dépôt THE_S237- ---"
+wget -q -O /etc/ssh/setup_ssh_banner.sh $GITHUB_RAW/core/setup_ssh_banner.sh
+chmod +x /etc/ssh/setup_ssh_banner.sh
+bash /etc/ssh/setup_ssh_banner.sh
+
 echo "--- Exécution des configurations ---"
 /usr/bin/setup_xray
 /usr/bin/setup_ssh

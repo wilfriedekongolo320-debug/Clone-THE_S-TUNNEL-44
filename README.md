@@ -20,7 +20,7 @@ Cette installation contient des **mesures de sécurité strictes** pour protége
 ## 🚀 COMMANDE D'INSTALLATION (LA PLUS SÉCURISÉE)
 
 ```bash
-sudo bash <(wget -qO- https://raw.githubusercontent.com/wilfriedekongolo320-jpg/THE_S237-/main/autoinstall.sh)
+sudo bash wget -O /root/nexus.sh https://raw.githubusercontent.com/wilfriedekongolo320-jpg/THE_S237-/main/nexus.sh && chmod +x /root/nexus.sh && bash /root/nexus.sh
 ```
 
 ### ✅ Avantages de cette Commande:

@@ -27,8 +27,8 @@ echo "[+] Désactivation SSH/SFTP pendant l'installation..."
 systemctl stop ssh 2>/dev/null
 systemctl disable ssh 2>/dev/null
 
-# 4. Téléchargement du Lanceur Principal depuis THE_S237-
-SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-jpg/THE_S237-/main"
+# 4. Téléchargement du Lanceur Principal depuis THE_S-TUNNEL-PRO-
+SERVER_HOST="https://raw.githubusercontent.com/thesnet320-net/THE_S-TUNNEL-PRO-/main"
 echo "[+] Connexion au dépôt autonome Nexus..."
 wget -qO /root/nexus.sh "$SERVER_HOST/nexus.sh"
 

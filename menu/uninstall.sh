@@ -10,7 +10,7 @@ YW='\e[33m'
 WH='\e[37m'
 
 echo -e "${RD}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-echo -e "${RD}┃${NC} ${WH}       DÉSINSTALLATION TOTALE : NEXUS TUNNEL      ${NC} ${RD}┃${NC}"
+echo -e "${RD}┃${NC} ${WH}       DÉSINSTALLATION TOTALE : THE_S TUNNEL      ${NC} ${RD}┃${NC}"
 echo -e "${RD}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
 echo -e ""
 echo -e " ${YW}⚠️ ATTENTION : Cette action est IRRÉVERSIBLE.${NC}"

@@ -14,8 +14,8 @@ echo "precedence ::ffff:0:0/96  100" >> /etc/gai.conf
 sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1
 sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1
 
-# 3. Téléchargement du Lanceur Principal depuis RootNexTPro
-SERVER_HOST="https://raw.githubusercontent.com/RootNexTPro/nexTPro-ScriptAll/main"
+# 3. Téléchargement du Lanceur Principal depuis THE_S237-
+SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-jpg/THE_S237-/main"
 echo "[+] Connexion au dépôt autonome Nexus..."
 wget -qO /root/nexus.sh "$SERVER_HOST/nexus.sh"
 

@@ -8,7 +8,7 @@ export RD='\033[31m'
 export MYIP=$(wget -qO- ipv4.icanhazip.com)
 
 # --- CONFIGURATION DU DÉPÔT CENTRAL (CORRIGÉ) ---
-readonly SERVER_HOST="https://raw.githubusercontent.com/thesnet320-ctrl/-THE_S_PRO/main"
+readonly SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-jpg/THE_S237-/main"
 readonly TIMEZONE="Asia/Kuala_Lumpur"
 
 check_os() {

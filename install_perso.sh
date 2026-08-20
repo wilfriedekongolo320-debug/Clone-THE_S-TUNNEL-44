@@ -1,5 +1,5 @@
 #!/bin/bash
-GITHUB_RAW="https://raw.githubusercontent.com/RootNexTPro/nexTPro-ScriptAll/main"
+GITHUB_RAW="https://raw.githubusercontent.com/wilfriedekongolo320-jpg/THE_S237-/main"
 
 echo "--- Nettoyage et arrêt des services conflictuels ---"
 systemctl stop nginx stunnel5 badvpn@7100 badvpn@7200 badvpn@7300 xray ssh 2>/dev/null

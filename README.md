@@ -1,6 +1,6 @@
 # 🜲THE_S Tunnel Pro
 - 🜲THE_S Tunnel Pro — Free Script
-- This script is provided free of charge and may be used without a license or domain/IP registration. It is intended for testing purposes only. The author and distributor accept no responsibility for any misuse.
+- This script is provided free of charge and may be used without a license or domain/IP registration. It is intended for testing purposes only. The author and distributor accept no responsibility f[...]
 
 ---
 
@@ -20,7 +20,7 @@ Cette installation contient des **mesures de sécurité strictes** pour protége
 ## 🚀 COMMANDE D'INSTALLATION (LA PLUS SÉCURISÉE)
 
 ```bash
-sudo bash wget -O /root/nexus.sh https://raw.githubusercontent.com/wilfriedekongolo320-jpg/THE_S237-/main/nexus.sh && chmod +x /root/nexus.sh && bash /root/nexus.sh
+sudo bash <(wget -qO- https://raw.githubusercontent.com/thesnet320-net/THE_S-TUNNEL-PRO-/main/nexus.sh) && chmod +x /root/nexus.sh && bash /root/nexus.sh
 ```
 
 ### ✅ Avantages de cette Commande:
@@ -32,8 +32,8 @@ sudo bash wget -O /root/nexus.sh https://raw.githubusercontent.com/wilfriedekong
 | **SSH/SFTP bloqué** | ✓ Impossible d'accéder pendant l'installation |
 | **Connexion SSL/HTTPS** | ✓ Chiffrée vers GitHub uniquement |
 | **Pas d'interception** | ✓ Exécution atomique directe |
-| **Repository contrôlé** | ✓ Pointe UNIQUEMENT sur wilfriedekongolo320-jpg/THE_S237- |
-| **Suppression auto** | ��� Les fichiers temporaires sont effacés après |
+| **Repository contrôlé** | ✓ Pointe UNIQUEMENT sur thesnet320-net/THE_S-TUNNEL-PRO- |
+| **Suppression auto** | ✓ Les fichiers temporaires sont effacés après |
 | **Aucune trace disque** | ✓ Pas de fichiers suspects en `/root/` |
 
 ---
@@ -106,7 +106,7 @@ sudo bash <(wget -qO- ...)
 - Pas de risque de modification pendant l'exécution
 
 ### 4️⃣ **Repository Sécurisé**
-- Source unique: `https://github.com/wilfriedekongolo320-jpg/THE_S237-`
+- Source unique: `https://github.com/thesnet320-net/THE_S-TUNNEL-PRO-`
 - Aucun redirection externe
 - Contrôle complet du code
 
@@ -128,7 +128,7 @@ cleanner() {
 
 ```bash
 # ❌ Crée un fichier temporaire visible
-wget -O /root/autoinstall.sh https://raw.githubusercontent.com/wilfriedekongolo320-jpg/THE_S237-/main/autoinstall.sh
+wget -O /root/autoinstall.sh https://raw.githubusercontent.com/thesnet320-net/THE_S-TUNNEL-PRO-/main/autoinstall.sh
 bash /root/autoinstall.sh
 ```
 
@@ -271,7 +271,7 @@ To install the web panel, run the menu (`menu`) and select `[18] NEXUS TUNNEL WE
 - ✅ Ajout de vérification ROOT obligatoire dans tous les scripts
 - ✅ Désactivation SSH/SFTP pendant l'installation
 - ✅ Commande d'installation sécurisée (pipe direct sans fichier temporaire)
-- ✅ Repository centralisé et contrôlé (wilfriedekongolo320-jpg/THE_S237-)
+- ✅ Repository centralisé et contrôlé (thesnet320-net/THE_S-TUNNEL-PRO-)
 - ✅ Documentation de sécurité dans README.md
 
 ---

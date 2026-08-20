@@ -163,7 +163,7 @@ fi
 # Footer en Rouge et Texte centré
 VERSION=$(cat /etc/version 2>/dev/null || echo "2.1.0")
 FOOTER_TEXT="VERSION:  ${VERSION}  |  SCRIPT BY: 🜲THE_S  
-|  CONTACT Admin: +237 692 25 45 12"
+|  CONTACT Admin: +237 621 67 16 48"
 FOOTER_LEN=${#FOOTER_TEXT}
 FOOTER_PADDING=$(( (TERM_WIDTH - FOOTER_LEN) / 2 ))
 

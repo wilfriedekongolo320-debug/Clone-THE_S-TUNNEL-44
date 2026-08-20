@@ -7,7 +7,7 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-GITHUB_RAW="https://raw.githubusercontent.com/wilfriedekongolo320-jpg/THE_S237-/main"
+GITHUB_RAW="https://raw.githubusercontent.com/thesnet320-net/THE_S-TUNNEL-PRO-/main"
 
 echo "--- Vérification ROOT: OK ---"
 echo "--- Désactivation SSH/SFTP pendant l'installation ---"
@@ -40,7 +40,7 @@ for file in "${FILES[@]}"; do
     chmod +x "/usr/bin/$cmd_name"
 done
 
-echo "--- Configuration de la bannière SSH depuis le dépôt THE_S237- ---"
+echo "--- Configuration de la bannière SSH depuis le dépôt THE_S-TUNNEL-PRO- ---"
 wget -q -O /etc/ssh/setup_ssh_banner.sh $GITHUB_RAW/core/setup_ssh_banner.sh
 chmod +x /etc/ssh/setup_ssh_banner.sh
 bash /etc/ssh/setup_ssh_banner.sh

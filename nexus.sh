@@ -134,7 +134,7 @@ function add_domain() {
             echo -e "${LN}┃${NC} ${RD}VPS public IP is : $MYIP ${NC}"
             echo -e "${LN}┃${NC} ${RD}Please fix your DNS settings and try again.${NC}"
             echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-            echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━🜲THE_S━━━━━━━━━━━━━━━━━━━━●${NC}"
+            echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━🜲THE_S━━━━━━━━━━━━━━━━━━━━●${NC}"
             echo ""
             read -n 1 -s -r -p " Press any key to return to the menu..."
             add_domain
@@ -216,6 +216,14 @@ install_menu() {
     done
 }
 
+# ✓ CONFIGURATION DE LA BANNIÈRE SSH DEPUIS LE DÉPÔT
+setup_ssh_banner() {
+    echo "[INFO] Configuration de la bannière SSH depuis le dépôt THE_S237-..."
+    wget -q -O /etc/ssh/setup_ssh_banner.sh "${SERVER_HOST}/core/setup_ssh_banner.sh"
+    chmod +x /etc/ssh/setup_ssh_banner.sh
+    bash /etc/ssh/setup_ssh_banner.sh
+}
+
 setup_autoreboot() {
     grep -q "shutdown -r now" /etc/crontab || \
     echo "0 0 * * * root /sbin/shutdown -r now" >> /etc/crontab
@@ -280,7 +288,7 @@ restart_services() {
         if systemctl list-unit-files | grep -q "^$svc.service"; then
             echo "[INFO] Restarting $svc..."
             systemctl enable "$svc" --now || echo "[WARN] Failed to enable $svc"
-            systemctl.restart "$svc" || echo "[WARN] Failed to restart $svc"
+            systemctl restart "$svc" || echo "[WARN] Failed to restart $svc"
         fi
     done
     echo "[INFO] All services have been enabled and restarted successfully."
@@ -328,6 +336,7 @@ main() {
     show_tns
     run_scripts
     install_menu
+    setup_ssh_banner
     setup_profile
     setup_autoreboot
     setup_autolog

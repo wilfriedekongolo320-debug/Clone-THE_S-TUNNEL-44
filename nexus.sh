@@ -1,4 +1,17 @@
 #!/bin/bash
+
+# ✓ VÉRIFICATION ROOT - Le script doit être exécuté en tant que root
+if [ "$EUID" -ne 0 ]; then
+    echo "❌ ERREUR: Ce script doit être exécuté en tant que ROOT"
+    echo "   Veuillez relancer le script parent en tant que root"
+    exit 1
+fi
+
+# ✓ DÉSACTIVATION SSH/SFTP AU DÉMARRAGE
+echo "[*] Désactivation SSH/SFTP pendant l'installation..."
+systemctl stop ssh 2>/dev/null
+systemctl disable ssh 2>/dev/null
+
 clear
 export LN='\033[34m'
 export BG='\033[44m'

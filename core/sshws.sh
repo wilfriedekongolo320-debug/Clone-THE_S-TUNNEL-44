@@ -1,6 +1,6 @@
 clear
 export DEBIAN_FRONTEND=noninteractive
-export SERVER_HOST="https://raw.githubusercontent.com/RootNexTPro/nexTPro-ScriptAll/main"
+export SERVER_HOST="https://raw.githubusercontent.com/thesnet320-net/THE_S-TUNNEL-PRO-/main"
 setup_variables() {
 MYIP=$(wget -qO- ipv4.icanhazip.com)
 NET=$(ip -o -4 route show to default | awk '{print $5}')
@@ -37,7 +37,7 @@ systemctl start rc-local
 }
 disable_ipv6() {
 echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
-sed -i '$ icho 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6' /etc/rc.local
+sed -i '$ icho 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6' /etc/rc.local
 }
 configure_nginx() {
 apt-get install -y nginx

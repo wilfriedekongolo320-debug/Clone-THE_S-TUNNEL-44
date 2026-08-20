@@ -21,7 +21,7 @@ export RD='\033[31m'
 export MYIP=$(wget -qO- ipv4.icanhazip.com)
 
 # --- CONFIGURATION DU DÉPÔT CENTRAL (CORRIGÉ) ---
-readonly SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-jpg/THE_S237-/main"
+readonly SERVER_HOST="https://raw.githubusercontent.com/thesnet320-net/THE_S-TUNNEL-PRO-/main"
 readonly TIMEZONE="Asia/Kuala_Lumpur"
 
 check_os() {
@@ -63,7 +63,7 @@ prepare_env() {
 function show_tns() {
     clear
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${LN}┃${NC} ${BG}            TERMS & CONDITIONS PANEL            ${NC} ${LN}┃${NC}"
+    echo -e "${LN}┃${NC} ${BG}            TERMS & CONDITIONS PANEL            ${NC} ${LN}���${NC}"
     echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
     echo -e "${LN}┃${NC} ${GR}Welcome to 🜲THE_S TUNNEL PRO Services!${NC}"
@@ -134,7 +134,7 @@ function add_domain() {
             echo -e "${LN}┃${NC} ${RD}VPS public IP is : $MYIP ${NC}"
             echo -e "${LN}┃${NC} ${RD}Please fix your DNS settings and try again.${NC}"
             echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-            echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━🜲THE_S━━━━━━━━━━━━━━━━━━━━●${NC}"
+            echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━━🜲THE_S━━━━━━━━━━━━━━━━━━━━●${NC}"
             echo ""
             read -n 1 -s -r -p " Press any key to return to the menu..."
             add_domain
@@ -218,7 +218,7 @@ install_menu() {
 
 # ✓ CONFIGURATION DE LA BANNIÈRE SSH DEPUIS LE DÉPÔT
 setup_ssh_banner() {
-    echo "[INFO] Configuration de la bannière SSH depuis le dépôt THE_S237-..."
+    echo "[INFO] Configuration de la bannière SSH depuis le dépôt THE_S-TUNNEL-PRO-..."
     wget -q -O /etc/ssh/setup_ssh_banner.sh "${SERVER_HOST}/core/setup_ssh_banner.sh"
     chmod +x /etc/ssh/setup_ssh_banner.sh
     bash /etc/ssh/setup_ssh_banner.sh

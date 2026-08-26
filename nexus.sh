@@ -20,8 +20,8 @@ export GR='\033[32m'
 export RD='\033[31m'
 export MYIP=$(wget -qO- ipv4.icanhazip.com)
 
-# --- CONFIGURATION DU DÉPÔT CENTRAL (CORRIGÉ) ---
-readonly SERVER_HOST="https://raw.githubusercontent.com/thesnet320-net/THE_S-TUNNEL-PRO-/main"
+# --- CONFIGURATION DU DÉPÔT CENTRAL (MODIFIÉ - POINTE VERS VOTRE CLONE) ---
+readonly SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-coder/Clone-THE_S-TUNNEL-/main"
 readonly TIMEZONE="Asia/Kuala_Lumpur"
 
 check_os() {
@@ -63,7 +63,7 @@ prepare_env() {
 function show_tns() {
     clear
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${LN}┃${NC} ${BG}            TERMS & CONDITIONS PANEL            ${NC} ${LN}���${NC}"
+    echo -e "${LN}┃${NC} ${BG}            TERMS & CONDITIONS PANEL            ${NC} ${LN}┃${NC}"
     echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
     echo -e "${LN}┃${NC} ${GR}Welcome to 🜲THE_S TUNNEL PRO Services!${NC}"
@@ -74,7 +74,7 @@ function show_tns() {
     echo -e "${LN}┃${NC} [*] 🜲THE_STUNNEL PRO is not liable for data loss or leaks."
     echo -e "${LN}┃${NC} [*] You must follow all applicable laws."
     echo -e "${LN}┃${NC} [*] Terms may change anytime without notice."
-    echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━●${NC}"
+    echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━��━━━━●${NC}"
     echo -e "${LN}┃${NC} [01] • Accept Terms"
     echo -e "${LN}┃${NC} [02] • Decline & Exit"
     echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
@@ -109,7 +109,7 @@ function show_tns() {
 
 function add_domain() {
     clear
-    echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
+    echo -e "${LN}┏━━━━━━━���━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
     echo -e "${LN}┃${NC} ${BG}                 DOMAIN PANEL                   ${NC} ${LN}┃${NC}"
     echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
@@ -218,7 +218,7 @@ install_menu() {
 
 # ✓ CONFIGURATION DE LA BANNIÈRE SSH DEPUIS LE DÉPÔT
 setup_ssh_banner() {
-    echo "[INFO] Configuration de la bannière SSH depuis le dépôt THE_S-TUNNEL-PRO-..."
+    echo "[INFO] Configuration de la bannière SSH depuis le dépôt..."
     wget -q -O /etc/ssh/setup_ssh_banner.sh "${SERVER_HOST}/core/setup_ssh_banner.sh"
     chmod +x /etc/ssh/setup_ssh_banner.sh
     bash /etc/ssh/setup_ssh_banner.sh

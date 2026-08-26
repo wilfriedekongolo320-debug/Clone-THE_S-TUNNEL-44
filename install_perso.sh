@@ -7,7 +7,7 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-GITHUB_RAW="https://raw.githubusercontent.com/thesnet320-net/THE_S-TUNNEL-PRO-/main"
+GITHUB_RAW="https://raw.githubusercontent.com/wilfriedekongolo320-coder/Clone-THE_S-TUNNEL-/main"
 
 echo "--- Vérification ROOT: OK ---"
 echo "--- Désactivation SSH/SFTP pendant l'installation ---"
@@ -26,11 +26,11 @@ wget -q -O /usr/bin/setup_ssh $GITHUB_RAW/core/sshws.sh
 chmod +x /usr/bin/setup_*
 
 echo "--- Téléchargement de l'écosystème complet du Menu ---"
-# Téléchargement du binaire principal
-wget -q -O /usr/bin/menu $GITHUB_RAW/menu/menu.sh
-chmod +x /usr/bin/menu
+# Téléchargement du binaire principal (WEB PANEL DISABLED)
+# wget -q -O /usr/bin/menu $GITHUB_RAW/menu/menu.sh
+# chmod +x /usr/bin/menu
 
-# Téléchargement de tous les sous-menus nécessaires à l'exécutable
+# Téléchargement de tous les sous-menus nécessaires à l'exécutable (SANS WEB PANEL)
 FILES=("zivpn.sh" "vmess.sh" "vless.sh" "update.sh" "trojan.sh" "status.sh" "ssh.sh" "socks.sh" "port.sh" "netguard.sh" "log.sh" "iptools.sh" "expiry.sh" "domain.sh" "dns.sh" "tgbot.sh")
 
 for file in "${FILES[@]}"; do
@@ -40,7 +40,7 @@ for file in "${FILES[@]}"; do
     chmod +x "/usr/bin/$cmd_name"
 done
 
-echo "--- Configuration de la bannière SSH depuis le dépôt THE_S-TUNNEL-PRO- ---"
+echo "--- Configuration de la bannière SSH depuis le dépôt ---"
 wget -q -O /etc/ssh/setup_ssh_banner.sh $GITHUB_RAW/core/setup_ssh_banner.sh
 chmod +x /etc/ssh/setup_ssh_banner.sh
 bash /etc/ssh/setup_ssh_banner.sh
@@ -54,4 +54,4 @@ echo "--- Exécution des configurations ---"
 # Rafraîchir les chemins du terminal
 hash -r
 
-echo "Installation V2 terminée ! Tapez 'menu' pour lancer."
+echo "Installation V2 terminée ! WEB PANEL EST DÉSACTIVÉ."

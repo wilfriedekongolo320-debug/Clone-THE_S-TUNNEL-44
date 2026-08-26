@@ -25,7 +25,7 @@ wget -q -O /usr/bin/setup_ssh $GITHUB_RAW/core/sshws.sh
 
 chmod +x /usr/bin/setup_*
 
-echo "--- Téléchargement de l'écosystème complet du Menu ---"
+echo "--- Téléchargement de l'écosystème complet du Menu (WEB PANEL DÉSACTIVÉ) ---"
 # Téléchargement du binaire principal (WEB PANEL DISABLED)
 # wget -q -O /usr/bin/menu $GITHUB_RAW/menu/menu.sh
 # chmod +x /usr/bin/menu

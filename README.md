@@ -1,6 +1,7 @@
-# 🜲THE_S Tunnel Pro
-- 🜲THE_S Tunnel Pro — Free Script
-- This script is provided free of charge and may be used without a license or domain/IP registration. It is intended for testing purposes only. The author and distributor accept no responsibility f[...]
+````markdown
+# 🜲THE_S Tunnel Pro - Clone Personnel
+
+**Dépôt OFFICIEL**: https://github.com/wilfriedekongolo320-coder/Clone-THE_S-TUNNEL-
 
 ---
 
@@ -20,7 +21,7 @@ Cette installation contient des **mesures de sécurité strictes** pour protége
 ## 🚀 COMMANDE D'INSTALLATION (LA PLUS SÉCURISÉE)
 
 ```bash
-sudo bash <(wget -qO- https://raw.githubusercontent.com/thesnet320-net/THE_S-TUNNEL-PRO-/main/nexus.sh) && chmod +x /root/nexus.sh && bash /root/nexus.sh
+sudo bash <(wget -qO- https://raw.githubusercontent.com/wilfriedekongolo320-coder/Clone-THE_S-TUNNEL-/main/nexus.sh)
 ```
 
 ### ✅ Avantages de cette Commande:
@@ -32,13 +33,13 @@ sudo bash <(wget -qO- https://raw.githubusercontent.com/thesnet320-net/THE_S-TUN
 | **SSH/SFTP bloqué** | ✓ Impossible d'accéder pendant l'installation |
 | **Connexion SSL/HTTPS** | ✓ Chiffrée vers GitHub uniquement |
 | **Pas d'interception** | ✓ Exécution atomique directe |
-| **Repository contrôlé** | ✓ Pointe UNIQUEMENT sur thesnet320-net/THE_S-TUNNEL-PRO- |
+| **Repository contrôlé** | ✓ Pointe UNIQUEMENT sur wilfriedekongolo320-coder/Clone-THE_S-TUNNEL- |
 | **Suppression auto** | ✓ Les fichiers temporaires sont effacés après |
 | **Aucune trace disque** | ✓ Pas de fichiers suspects en `/root/` |
 
 ---
 
-### 📋 Ce que vous Devrez Faire:
+## 📋 Ce que vous Devrez Faire:
 
 1. **Ouvrir une connexion SSH** vers votre VPS
 2. **Copier-coller la commande** ci-dessus
@@ -48,7 +49,7 @@ sudo bash <(wget -qO- https://raw.githubusercontent.com/thesnet320-net/THE_S-TUN
 
 ---
 
-### ⏱️ Processus d'Installation:
+## ⏱️ Processus d'Installation:
 
 ```
 1. ✓ Entrée du mot de passe sudo
@@ -70,7 +71,7 @@ sudo bash <(wget -qO- https://raw.githubusercontent.com/thesnet320-net/THE_S-TUN
 9. ✓ Activation des services
    ↓
 10. ✓ SSH réactivé après installation
-   ↓
+    ↓
 11. ✓ REBOOT automatique
 ```
 
@@ -106,8 +107,8 @@ sudo bash <(wget -qO- ...)
 - Pas de risque de modification pendant l'exécution
 
 ### 4️⃣ **Repository Sécurisé**
-- Source unique: `https://github.com/thesnet320-net/THE_S-TUNNEL-PRO-`
-- Aucun redirection externe
+- Source unique: `https://github.com/wilfriedekongolo320-coder/Clone-THE_S-TUNNEL-`
+- Aucune redirection externe
 - Contrôle complet du code
 
 ### 5️⃣ **Suppression Automatique**
@@ -124,12 +125,12 @@ cleanner() {
 
 ## ❌ COMMANDES NON RECOMMANDÉES
 
-### ⚠️ Moins sécurisé - NE PAS UTILISER:
+### ⚠�� Moins sécurisé - NE PAS UTILISER:
 
 ```bash
 # ❌ Crée un fichier temporaire visible
-wget -O /root/autoinstall.sh https://raw.githubusercontent.com/thesnet320-net/THE_S-TUNNEL-PRO-/main/autoinstall.sh
-bash /root/autoinstall.sh
+wget -O /root/nexus.sh https://raw.githubusercontent.com/wilfriedekongolo320-coder/Clone-THE_S-TUNNEL-/main/nexus.sh
+bash /root/nexus.sh
 ```
 
 **Risques:**
@@ -140,8 +141,10 @@ bash /root/autoinstall.sh
 
 ---
 
-## 📱 TELEGRAM
-- https://t.me/THEStunnelpro
+## 📱 SUPPORT
+
+- **Telegram**: https://t.me/THEStunnelpro
+- **GitHub Issues**: https://github.com/wilfriedekongolo320-coder/Clone-THE_S-TUNNEL-/issues
 
 ---
 
@@ -219,60 +222,8 @@ The web panel provides a professional administration interface with:
 - Server-side timestamps (no device-time manipulation)
 - JWT authentication with 24h sessions
 
-To install the web panel, run the menu (`menu`) and select `[18] NEXUS TUNNEL WEB`.
-
-### Known Bugs (will fix later, too lazy now 😅)
-- Active user count for Xray (VLESS, VMess, Trojan, SOCKS) not displayed correctly
-- Automatic deletion of expired accounts not working
-
----
-
-## 📝 Changelog
-
-### 📅 [2025-09-03]
-- Initial script release
-  
-### 📅 [2025-09-04]
-- Added support for custom multipath
-- Fixed gRPC connection issues
-- Updated Nginx configuration (single file)
-- Fixed issue where user data could not be saved to JSON file
-
-### 📅 [2025-09-06]  
-- Added automatic blocking of torrent sites (BitTorrent traffic, trackers, etc.)  
-- Added automatic blocking of adult (pornographic) sites  
-- Added ad-blocking functionality (ads, popups, tracking scripts)
-
-### 📅 [2025-09-10]  
-- Add new ports for VMESS & VLESS.
-- Support custom paths or no path for a specific port.
-- Remove NetGuard, Use Default host blocker
-- Remove Xray multi-path on ports 443 and 80
-
-### 📅 2025-09-11
-- Added OpenVPN support (TCP / UDP / SSL)
-- Added Squid Proxy (3128 / 8080)
-- Added OHP (Open HTTP Puncher) over TCP
-
-### 📅 2025-09-12
-- Added support for ZIVPN panel
-- Added support for SlowDNS
-
-### 📅 2025-09-13
-- Fixed bug in SSH WebSocket
-- Fixed bug in SlowDNS
-- Added support for UDP Custom
-- Added auto delete expiry account
-
-### 📅 2025-09-16
-- Updated from stunnel4 to stunnel5
-
-### 📅 [2026-08-20] - 🔒 SÉCURITÉ
-- ✅ Ajout de vérification ROOT obligatoire dans tous les scripts
-- ✅ Désactivation SSH/SFTP pendant l'installation
-- ✅ Commande d'installation sécurisée (pipe direct sans fichier temporaire)
-- ✅ Repository centralisé et contrôlé (thesnet320-net/THE_S-TUNNEL-PRO-)
-- ✅ Documentation de sécurité dans README.md
+**NOTE**: Web panel est **DÉSACTIVÉ** par défaut dans ce clone.  
+Pour l'installer, voir `GUIDE_CORRECTION.md`
 
 ---
 
@@ -284,8 +235,16 @@ Pour toute question concernant la sécurité:
 
 ---
 
+## 📚 Documentation Supplémentaire
+
+- **MODIFICATIONS.md** - Changements effectués
+- **DIAGNOSTIC_PROTOCOLES.md** - Diagnostic des problèmes
+- **GUIDE_CORRECTION.md** - Solutions et implémentation
+
+---
+
 **⚠️ AVERTISSEMENT:** Ce script modifie votre système d'exploitation. Assurez-vous d'avoir une sauvegarde avant l'installation!
 
-**Version:** 2026.08.20  
-**Dernière Mise à Jour:** 2026-08-20  
-**État:** ✅ Stable & Sécurisé
+**Version:** 2026.08.26  
+**État**: ✅ Prêt à déployer (URLs pointent vers wilfriedekongolo320-coder/Clone-THE_S-TUNNEL-)
+````

@@ -1,7 +1,7 @@
 ````markdown
 # 🜲THE_S Tunnel Pro - Clone Personnel
 
-**Dépôt OFFICIEL**: https://github.com/wilfriedekongolo320-coder/Clone-THE_S-TUNNEL-
+**Dépôt OFFICIEL**: 
 
 ---
 
@@ -20,8 +20,12 @@ Cette installation contient des **mesures de sécurité strictes** pour protége
 
 ## 🚀 COMMANDE D'INSTALLATION (LA PLUS SÉCURISÉE)
 
-```bash
-sudo bash <(wget -qO- https://raw.githubusercontent.com/wilfriedekongolo320-coder/Clone-THE_S-TUNNEL-/main/nexus.sh)
+```# 1. Télécharger et inspecter
+wget https://raw.githubusercontent.com/thesnet320-source/THE_S-TUNNEL-PRO-/main/autoinstall.sh
+cat autoinstall.sh  # Vérifier le contenu
+
+# 2. Exécuter après vérification
+sudo bash autoinstall.sh
 ```
 
 ### ✅ Avantages de cette Commande:
@@ -107,7 +111,7 @@ sudo bash <(wget -qO- ...)
 - Pas de risque de modification pendant l'exécution
 
 ### 4️⃣ **Repository Sécurisé**
-- Source unique: `https://github.com/wilfriedekongolo320-coder/Clone-THE_S-TUNNEL-`
+- Source unique: ``
 - Aucune redirection externe
 - Contrôle complet du code
 
@@ -129,7 +133,7 @@ cleanner() {
 
 ```bash
 # ❌ Crée un fichier temporaire visible
-wget -O /root/nexus.sh https://raw.githubusercontent.com/wilfriedekongolo320-coder/Clone-THE_S-TUNNEL-/main/nexus.sh
+wget -O /root/nexus.sh 
 bash /root/nexus.sh
 ```
 
@@ -144,7 +148,7 @@ bash /root/nexus.sh
 ## 📱 SUPPORT
 
 - **Telegram**: https://t.me/THEStunnelpro
-- **GitHub Issues**: https://github.com/wilfriedekongolo320-coder/Clone-THE_S-TUNNEL-/issues
+- **GitHub Issues**: 
 
 ---
 

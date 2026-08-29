@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.WARNING, format='%(asctime)s %(levelname)s %(m
 
 CONFIG_FILE = '/etc/nexus_bot/config.json'
 
-MENU_IMAGE_URL = "https://github.com/user-attachments/assets/baf681b1-820a-428d-85cf-703c25ff498b"
+MENU_IMAGE_URL = "https://github.com/user-attachments/assets/a6307c0b-01f0-4b96-852b-ed8907c79c62"
 
 def load_config():
     if not os.path.exists(CONFIG_FILE): return None

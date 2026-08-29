@@ -1,5 +1,5 @@
 [Unit]
-Description=Nexus Bot Telegram C2
+Description=THE_S_NET TUNNEL 
 After=network.target
 
 [Service]

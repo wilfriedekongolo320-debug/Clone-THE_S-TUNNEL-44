@@ -20,8 +20,8 @@ export GR='\033[32m'
 export RD='\033[31m'
 export MYIP=$(wget -qO- ipv4.icanhazip.com)
 
-# --- CONFIGURATION DU DÉPÔT CENTRAL (MODIFIÉ - POINTE VERS VOTRE CLONE) ---
-readonly SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-coder/Clone-THE_S-TUNNEL-/main"
+# --- CONFIGURATION DU DÉPÔT CENTRAL (MODIFIÉ - POINTE VERS VOTRE DÉPÔT PRINCIPAL) ---
+readonly SERVER_HOST="https://raw.githubusercontent.com/thesnet320-source/THE_S-TUNNEL-PRO-/main"
 readonly TIMEZONE="Asia/Kuala_Lumpur"
 
 check_os() {
@@ -74,7 +74,7 @@ function show_tns() {
     echo -e "${LN}┃${NC} [*] 🜲THE_STUNNEL PRO is not liable for data loss or leaks."
     echo -e "${LN}┃${NC} [*] You must follow all applicable laws."
     echo -e "${LN}┃${NC} [*] Terms may change anytime without notice."
-    echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━��━━━━●${NC}"
+    echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━●${NC}"
     echo -e "${LN}┃${NC} [01] • Accept Terms"
     echo -e "${LN}┃${NC} [02] • Decline & Exit"
     echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
@@ -109,7 +109,7 @@ function show_tns() {
 
 function add_domain() {
     clear
-    echo -e "${LN}┏━━━━━━━���━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
+    echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
     echo -e "${LN}┃${NC} ${BG}                 DOMAIN PANEL                   ${NC} ${LN}┃${NC}"
     echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
@@ -125,7 +125,7 @@ function add_domain() {
             break
         else
             clear
-            echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
+            echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━��━━━━━━━━━━━━┓${NC}"
             echo -e "${LN}┃${NC} ${BG}                 DOMAIN PANEL                   ${NC} ${LN}┃${NC}"
             echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
             echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
@@ -134,7 +134,7 @@ function add_domain() {
             echo -e "${LN}┃${NC} ${RD}VPS public IP is : $MYIP ${NC}"
             echo -e "${LN}┃${NC} ${RD}Please fix your DNS settings and try again.${NC}"
             echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-            echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━━🜲THE_S━━━━━━━━━━━━━━━━━━━━●${NC}"
+            echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━🜲THE_S━━━━━━━━━━━━━━━━━━━━●${NC}"
             echo ""
             read -n 1 -s -r -p " Press any key to return to the menu..."
             add_domain
@@ -300,7 +300,7 @@ doty_completed() {
     MYIP=$(wget -qO- ipv4.icanhazip.com)
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
     echo -e "${LN}┃${NC} ${BG}         INSTALLATION DE 🜲THE_SCOMPLETE               ${NC} ${LN}┃${NC}"
-    echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+    echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━��━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
     echo -e "${LN}┃${NC} ${GR}Congratulations! 🜲THE_S TUNNEL PRO is ready.${NC}"
     echo -e "${LN}┃${NC}"

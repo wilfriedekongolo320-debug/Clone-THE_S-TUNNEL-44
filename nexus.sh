@@ -1,26 +1,38 @@
 #!/bin/bash
+# ============================================================
+#  THE_S TUNNEL PRO - MAIN INSTALLER (Cyberpunk Theme)
+# ============================================================
 
-# ✓ VÉRIFICATION ROOT - Le script doit être exécuté en tant que root
+# --- VÉRIFICATION ROOT ---
 if [ "$EUID" -ne 0 ]; then
-    echo "❌ ERREUR: Ce script doit être exécuté en tant que ROOT"
-    echo "   Veuillez relancer le script parent en tant que root"
+    echo "❌ ERREUR: Ce script doit être exécuté en tant que ROOT."
+    echo "   Veuillez relancer le script parent avec sudo ou en root."
     exit 1
 fi
 
-# ✓ DÉSACTIVATION SSH/SFTP AU DÉMARRAGE
-echo "[*] Désactivation SSH/SFTP pendant l'installation..."
+# --- DÉSACTIVATION SSH TEMPORAIRE ---
+echo "[*] Désactivation temporaire de SSH/SFTP pour l'installation..."
 systemctl stop ssh 2>/dev/null
 systemctl disable ssh 2>/dev/null
 
 clear
-export LN='\033[34m'
-export BG='\033[44m'
-export NC='\033[0m'
-export GR='\033[32m'
-export RD='\033[31m'
-export MYIP=$(wget -qO- ipv4.icanhazip.com)
 
-# --- CONFIGURATION DU DÉPÔT CENTRAL (MODIFIÉ - POINTE VERS VOTRE DÉPÔT PRINCIPAL) ---
+# ==============================================================================
+#  PALETTE NEON CYBERPUNK (ANSI 256)
+# ==============================================================================
+export C_RESET='\033[0m'
+export C_BOLD='\033[1m'
+export C_CYAN='\033[38;5;45m'
+export C_MAGENTA='\033[38;5;201m'
+export C_GREEN='\033[38;5;46m'
+export C_GOLD='\033[38;5;220m'
+export C_RED='\033[38;5;196m'
+export C_GRAY='\033[38;5;242m'
+export C_WHITE='\033[38;5;255m'
+
+export MYIP=$(wget -qO- ipv4.icanhazip.com 2>/dev/null || echo "127.0.0.1")
+
+# --- CONFIGURATION DÉPÔT CENTRAL ---
 readonly SERVER_HOST="https://raw.githubusercontent.com/thesnet320-source/THE_S-TUNNEL-PRO-/main"
 readonly TIMEZONE="Asia/Kuala_Lumpur"
 
@@ -30,18 +42,18 @@ check_os() {
         if [[ "$ID" == "ubuntu" || "$ID" == "debian" ]]; then
             return 0  
         else
-            echo "Unsupported OS: $ID. Exiting."
+            echo -e " ${C_RED}✖ Système d'exploitation non supporté : $ID. Abandon.${C_RESET}"
             exit 1
         fi
     else
-        echo "Cannot detect OS. Exiting."
+        echo -e " ${C_RED}✖ Impossible de détecter l'OS. Abandon.${C_RESET}"
         exit 1
     fi
 }
 
 check_root_virt() {
-    [ "$EUID" -ne 0 ] && { echo "Run as root"; exit 1; }
-    [ "$(systemd-detect-virt)" = "openvz" ] && { echo "OpenVZ is not supported"; exit 1; }
+    [ "$EUID" -ne 0 ] && { echo -e " ${C_RED}✖ Exécutez en tant que root.${C_RESET}"; exit 1; }
+    [ "$(systemd-detect-virt)" = "openvz" ] && { echo -e " ${C_RED}✖ OpenVZ n'est pas supporté.${C_RESET}"; exit 1; }
 }
 
 setup_host_time() {
@@ -62,46 +74,47 @@ prepare_env() {
 
 function show_tns() {
     clear
-    echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${LN}┃${NC} ${BG}            TERMS & CONDITIONS PANEL            ${NC} ${LN}┃${NC}"
-    echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-    echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${LN}┃${NC} ${GR}Welcome to 🜲THE_S TUNNEL PRO Services!${NC}"
-    echo -e "${LN}┃${NC}"
-    echo -e "${LN}┃${NC} [*] Please read the terms below carefully"
-    echo -e "${LN}┃${NC} [*] 🜲THE_S TUNNEL PRO is provided as-is, no warranties."
-    echo -e "${LN}┃${NC} [*] Do not use this service for illegal activities."
-    echo -e "${LN}┃${NC} [*] 🜲THE_STUNNEL PRO is not liable for data loss or leaks."
-    echo -e "${LN}┃${NC} [*] You must follow all applicable laws."
-    echo -e "${LN}┃${NC} [*] Terms may change anytime without notice."
-    echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━●${NC}"
-    echo -e "${LN}┃${NC} [01] • Accept Terms"
-    echo -e "${LN}┃${NC} [02] • Decline & Exit"
-    echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-    echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━●${NC}"
-    echo
-    read -p "  Select an option : " opt
+    echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+    echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ CONDITIONS D'UTILISATION - THE_S TUNNEL PRO${C_RESET}               ${C_MAGENTA}║${C_RESET}"
+    echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
     echo ""
+    echo -e "  ${C_GOLD}Bienvenue dans les services 🜲 THE_S TUNNEL PRO !${C_RESET}"
+    echo ""
+    echo -e "  ${C_GRAY}[*] Veuillez lire attentivement les termes ci-dessous :${C_RESET}"
+    echo -e "  ${C_GRAY}[*] Service fourni 'tel quel', sans garantie d'aucune sorte.${C_RESET}"
+    echo -e "  ${C_GRAY}[*] Utilisation strictement interdite pour activités illégales.${C_RESET}"
+    echo -e "  ${C_GRAY}[*] THE_S Team n'est pas responsable de la perte de données.${C_RESET}"
+    echo -e "  ${C_GRAY}[*] Vous devez respecter les lois locales en vigueur.${C_RESET}"
+    echo -e "  ${C_GRAY}[*] Termes modifiables sans préavis.${C_RESET}"
+    echo ""
+    echo -e "${C_CYAN}───────────────────────────────────────────────────────────────────${C_RESET}"
+    echo -e "  ${C_GREEN}[01] • Accepter les termes${C_RESET}"
+    echo -e "  ${C_RED}[02] • Décliner et Quitter${C_RESET}"
+    echo -e "${C_CYAN}───────────────────────────────────────────────────────────────────${C_RESET}"
+    echo ""
+    read -rp "  🜲 Sélectionnez une option [01-02] : " opt
+    echo ""
+
     case $opt in
     1 | 01)
         clear
-        echo -e " ${GR}You have accepted the Terms & Conditions.${NC}"
-        echo -e " ${GR}Loading...${NC}"
-        sleep 5
+        echo -e "  ${C_GREEN}⚡ Vous avez accepté les conditions d'utilisation.${C_RESET}"
+        echo -e "  ${C_CYAN}Initialisation en cours...${C_RESET}"
+        sleep 2
         add_domain
         ;;
     2 | 02)
         clear
-        echo -e " ${RD}You declined the Terms & Conditions.${NC}"
-        echo -e " ${RD}Removing all /root/*.sh scripts and exiting...${NC}"
+        echo -e "  ${C_RED}✖ Vous avez refusé les conditions d'utilisation.${C_RESET}"
+        echo -e "  ${C_RED}Nettoyage des scripts et fermeture...${C_RESET}"
         rm -f /root/*.sh
-        sleep 10
+        sleep 3
         exit 0
         ;;
     *)
-        echo -e "${RD} [ERROR] Invalid selection!${NC}"
+        echo -e "  ${C_RED}✖ Option invalide ! Annulation.${C_RESET}"
         rm -f /root/*.sh
-        sleep 10
+        sleep 3
         exit 0
         ;;
     esac
@@ -109,67 +122,68 @@ function show_tns() {
 
 function add_domain() {
     clear
-    echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${LN}┃${NC} ${BG}                 DOMAIN PANEL                   ${NC} ${LN}┃${NC}"
-    echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-    echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo
+    echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+    echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ CONFIGURATION DU DOMAINE${C_RESET}                                      ${C_MAGENTA}║${C_RESET}"
+    echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
+    echo ""
+
     while true; do
-        read -rp " Hostname / Domain: " host
+        read -rp "  ► Nom de domaine / Hostname : " host
         if [[ -z "$host" ]]; then
-            echo -e " ${RD}Domain cannot be empty. Please try again.${NC}"
+            echo -e "  ${C_RED}✖ Le domaine ne peut pas être vide.${C_RESET}"
             continue
         fi
+
         domain_ip=$(getent ahosts "$host" | awk '{print $1; exit}')
         if [[ "$domain_ip" == "$MYIP" ]]; then
             break
         else
             clear
-            echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━��━━━━━━━━━━━━┓${NC}"
-            echo -e "${LN}┃${NC} ${BG}                 DOMAIN PANEL                   ${NC} ${LN}┃${NC}"
-            echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-            echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-            echo -e "${LN}┃${NC} ${RD}✘ Domain does not point to this VPS!${NC}"
-            echo -e "${LN}┃${NC} ${RD}Domain resolves to: $domain_ip ${NC}"
-            echo -e "${LN}┃${NC} ${RD}VPS public IP is : $MYIP ${NC}"
-            echo -e "${LN}┃${NC} ${RD}Please fix your DNS settings and try again.${NC}"
-            echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-            echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━🜲THE_S━━━━━━━━━━━━━━━━━━━━●${NC}"
+            echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+            echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_RED}✖ ERREUR DE POINTEUR DNS${C_RESET}                                          ${C_MAGENTA}║${C_RESET}"
+            echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
             echo ""
-            read -n 1 -s -r -p " Press any key to return to the menu..."
+            echo -e "  ${C_RED}Le domaine ne pointe pas vers cette adresse VPS !${C_RESET}"
+            echo -e "  ${C_WHITE}Résolution du domaine :${C_RESET} ${C_GOLD}$domain_ip${C_RESET}"
+            echo -e "  ${C_WHITE}Adresse IP publique   :${C_RESET} ${C_GREEN}$MYIP${C_RESET}"
+            echo ""
+            echo -e "  ${C_GRAY}Corrigez vos enregistrements DNS (A Record) puis réessayez.${C_RESET}"
+            echo -e "${C_CYAN}───────────────────────────────────────────────────────────────────${C_RESET}"
+            echo ""
+            read -n 1 -s -r -p "  Appuyez sur une touche pour réessayer..."
             add_domain
             return
         fi
     done
+
     echo "$host" > /root/domain
     echo "$host" > /etc/xray/domain
+
     if [[ -f /root/domain ]]; then
         domain=$(cat /root/domain)
     elif [[ -f /etc/xray/domain ]]; then
         domain=$(cat /etc/xray/domain)
     else
-        echo -e "${RD} [*] Domain file not found!${NC}"
+        echo -e "  ${C_RED}✖ Fichier de domaine introuvable !${C_RESET}"
         rm -f /root/*.sh
         exit 1
     fi
+
     clear
-    echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${LN}┃${NC} ${BG}                 DOMAIN PANEL                   ${NC} ${LN}┃${NC}"
-    echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-    echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${LN}┃${NC} Domain has been set successfully!"
-    echo -e "${LN}┃${NC} Current Domain: ${domain}"
-    echo -e "${LN}┃${NC}                                                    "
-    echo -e "${LN}┃${NC} AutoScript Xray by 🜲THE_S Team"
-    echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-    echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━●${NC}"
-    sleep 4
-    echo " [*] Installation started...."
+    echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+    echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_GREEN}⚡ DOMAINE CONFIGURÉ AVEC SUCCÈS${C_RESET}                                ${C_MAGENTA}║${C_RESET}"
+    echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
+    echo ""
+    echo -e "  ${C_WHITE}Domaine actif :${C_RESET} ${C_CYAN}${domain}${C_RESET}"
+    echo -e "  ${C_GRAY}AutoScript Xray par 🜲 THE_S Team${C_RESET}"
+    echo ""
     sleep 3
+    echo -e "  ${C_GOLD}[*] Début de l'installation du système...${C_RESET}"
+    sleep 2
 }
 
 update_system() {
-    echo "[INFO] Updating system..."
+    echo -e "  ${C_CYAN}[INFO] Mise à jour du système...${C_RESET}"
     apt-get update -y
     apt-get upgrade -y
     apt-get dist-upgrade -y
@@ -178,18 +192,20 @@ update_system() {
 }
 
 install_packages() {
-    echo "[INFO] Installing packages..."
+    echo -e "  ${C_CYAN}[INFO] Installation des dépendances...${C_RESET}"
     apt-get install -y \
     screen curl jq bzip2 gzip vnstat coreutils rsyslog iftop zip unzip git \
     apt-transport-https build-essential wget figlet ruby-full python3 make cmake \
     net-tools nano sed gnupg gnupg1 bc shc libxml-parser-perl neofetch lsof \
     libsqlite3-dev libz-dev gcc g++ libreadline-dev zlib1g-dev libssl-dev \
     dropbear fail2ban nginx certbot iptables-persistent
+
     if command -v gem >/dev/null; then
-        gem install lolcat >/dev/null
+        gem install lolcat >/dev/null 2>&1
     fi
+
     if ! dpkg -s nginx >/dev/null 2>&1; then
-        echo "[ERROR] nginx failed to install"
+        echo -e "  ${C_RED}[ERREUR] Échec de l'installation de Nginx.${C_RESET}"
         exit 1
     fi
 }
@@ -198,27 +214,27 @@ run_scripts() {
     scripts=("sshws.sh" "xray.sh" "vpn.sh" "websocket.sh" "setup_zivpn.sh" "setup_dns.sh" "setup_udp.sh" "validator.sh")
     for script in "${scripts[@]}"; do
         url="${SERVER_HOST}/core/${script}"
-        echo "[INFO] Downloading $script..."
+        echo -e "  ${C_CYAN}[INFO] Téléchargement de $script...${C_RESET}"
         if wget -q "$url" -O "$script"; then
             chmod +x "$script"
-            echo "[INFO] Running $script..."
+            echo -e "  ${C_GREEN}[INFO] Exécution de $script...${C_RESET}"
             ./$script
         else
-            echo "[ERROR] Failed to download $script from $url"
+            echo -e "  ${C_RED}[ERREUR] Impossible de télécharger $script depuis $url${C_RESET}"
         fi
     done
 }
 
 install_menu() {
+    echo -e "  ${C_CYAN}[INFO] Téléchargement des commandes du menu...${C_RESET}"
     for script in dns zivpn expiry domain iptools menu socks ssh status trojan vless vmess netguard port log tgbot uninstall update web fastdns; do
         wget -q -O "/usr/local/sbin/$script" "${SERVER_HOST}/menu/${script}.sh"
         chmod +x "/usr/local/sbin/$script"
     done
 }
 
-# ✓ CONFIGURATION DE LA BANNIÈRE SSH DEPUIS LE DÉPÔT
 setup_ssh_banner() {
-    echo "[INFO] Configuration de la bannière SSH depuis le dépôt..."
+    echo -e "  ${C_CYAN}[INFO] Configuration de la bannière SSH...${C_RESET}"
     wget -q -O /etc/ssh/setup_ssh_banner.sh "${SERVER_HOST}/core/setup_ssh_banner.sh"
     chmod +x /etc/ssh/setup_ssh_banner.sh
     bash /etc/ssh/setup_ssh_banner.sh
@@ -247,7 +263,7 @@ fi
 clear
 menu
 EOF
-    echo "[*] Profile configured"
+    echo -e "  ${C_GREEN}[*] Profil utilisateur configuré.${C_RESET}"
 }
 
 cleanner() {
@@ -256,7 +272,7 @@ cleanner() {
 }
 
 restart_services() {
-    echo "[*] Enabling and restarting all system services..."
+    echo -e "  ${C_CYAN}[*] Activation et redémarrage de tous les services...${C_RESET}"
     SERVICES=(
         ssh
         dropbear
@@ -278,39 +294,38 @@ restart_services() {
     )
     for svc in "${SERVICES[@]}"; do
         if systemctl list-unit-files | grep -q "^$svc.service"; then
-            echo "[INFO] Restarting $svc..."
-            systemctl enable "$svc" --now || echo "[WARN] Failed to enable $svc"
-            systemctl restart "$svc" || echo "[WARN] Failed to restart $svc"
+            echo -e "  ${C_GRAY}► Redémarrage de $svc...${C_RESET}"
+            systemctl enable "$svc" --now >/dev/null 2>&1 || true
+            systemctl restart "$svc" >/dev/null 2>&1 || true
         fi
     done
+
     for port in 7100 7200 7300; do
         svc="badvpn@$port"
         if systemctl list-unit-files | grep -q "^$svc.service"; then
-            echo "[INFO] Restarting $svc..."
-            systemctl enable "$svc" --now || echo "[WARN] Failed to enable $svc"
-            systemctl restart "$svc" || echo "[WARN] Failed to restart $svc"
+            echo -e "  ${C_GRAY}► Redémarrage de $svc...${C_RESET}"
+            systemctl enable "$svc" --now >/dev/null 2>&1 || true
+            systemctl restart "$svc" >/dev/null 2>&1 || true
         fi
     done
-    echo "[INFO] All services have been enabled and restarted successfully."
+    echo -e "  ${C_GREEN}[OK] Tous les services ont été démarrés avec succès.${C_RESET}"
 }
 
 doty_completed() {
     clear
-    domain=$(cat /etc/xray/domain)
-    MYIP=$(wget -qO- ipv4.icanhazip.com)
-    echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${LN}┃${NC} ${BG}         INSTALLATION DE 🜲THE_SCOMPLETE               ${NC} ${LN}┃${NC}"
-    echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━��━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-    echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${LN}┃${NC} ${GR}Congratulations! 🜲THE_S TUNNEL PRO is ready.${NC}"
-    echo -e "${LN}┃${NC}"
-    echo -e "${LN}┃${NC} Domain: ${domain}"
-    echo -e "${LN}┃${NC} VPS IP: ${MYIP}"
-    echo -e "${LN}┃${NC} Enjoy secure VPN services!${NC}"
-    echo -e "${LN}┃${NC} AutoScript Xray by 🜲THE_S Team"
-    echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-    echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━●${NC}"
-    echo
+    domain=$(cat /etc/xray/domain 2>/dev/null || echo "N/A")
+    MYIP=$(wget -qO- ipv4.icanhazip.com 2>/dev/null || echo "127.0.0.1")
+
+    echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+    echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_GREEN}⚡ INSTALLATION TERMINÉE DE THE_S TUNNEL PRO${C_RESET}                  ${C_MAGENTA}║${C_RESET}"
+    echo -e "${C_MAGENTA}╠═════════════════════════════════════════════════════════════════╣${C_RESET}"
+    printf "${C_MAGENTA}║${C_RESET}  ${C_WHITE}%-15s${C_RESET} : ${C_CYAN}%-45s${C_RESET} ${C_MAGENTA}║${C_RESET}\n" "Domaine Active" "$domain"
+    printf "${C_MAGENTA}║${C_RESET}  ${C_WHITE}%-15s${C_RESET} : ${C_GREEN}%-45s${C_RESET} ${C_MAGENTA}║${C_RESET}\n" "IP Serveur VPS" "$MYIP"
+    echo -e "${C_MAGENTA}╠═════════════════════════════════════════════════════════════════╣${C_RESET}"
+    echo -e "${C_MAGENTA}║${C_RESET} ${C_GOLD}Félicitations ! Votre serveur est prêt pour la production.${C_RESET}   ${C_MAGENTA}║${C_RESET}"
+    echo -e "${C_MAGENTA}║${C_RESET} ${C_GRAY}AutoScript Xray par 🜲 THE_S Team${C_RESET}                                ${C_MAGENTA}║${C_RESET}"
+    echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
+    echo ""
 }
 
 set_version() {
@@ -319,11 +334,12 @@ set_version() {
 }
 
 enable_bbr() {
-    sudo sysctl -w net.core.default_qdisc=fq
-    sudo sysctl -w net.ipv4.tcp_congestion_control=bbr
-    grep -q "net.core.default_qdisc" /etc/sysctl.conf || echo "net.core.default_qdisc = fq" | sudo tee -a /etc/sysctl.conf
-    grep -q "net.ipv4.tcp_congestion_control" /etc/sysctl.conf || echo "net.ipv4.tcp_congestion_control = bbr" | sudo tee -a /etc/sysctl.conf
-    sudo sysctl -p
+    echo -e "  ${C_CYAN}[INFO] Activation de TCP BBR...${C_RESET}"
+    sysctl -w net.core.default_qdisc=fq >/dev/null 2>&1
+    sysctl -w net.ipv4.tcp_congestion_control=bbr >/dev/null 2>&1
+    grep -q "net.core.default_qdisc" /etc/sysctl.conf || echo "net.core.default_qdisc = fq" >> /etc/sysctl.conf
+    grep -q "net.ipv4.tcp_congestion_control" /etc/sysctl.conf || echo "net.ipv4.tcp_congestion_control = bbr" >> /etc/sysctl.conf
+    sysctl -p >/dev/null 2>&1
 }
 
 main() {
@@ -346,7 +362,8 @@ main() {
     set_version
     doty_completed
     cleanner
-    echo "Installation finished. Server will reboot in 10 seconds."
+
+    echo -e "  ${C_GOLD}L'installation est terminée. Redémarrage dans 10 secondes...${C_RESET}"
     sleep 10
     reboot
 }

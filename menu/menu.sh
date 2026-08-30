@@ -1,19 +1,20 @@
 #!/bin/bash
 
 MYIP=$(curl -sS ipv4.icanhazip.com)
-readonly SERVER_HOST="https://github.com/thesnet320-source/THE_S-TUNNEL-PRO-.git"
+readonly SERVER_HOST="https://raw.githubusercontent.com/RootNexTPro/nexTPro-ScriptAll/main"
 clear
 
-LN='[34m'
-BG='[44m'
-NC='[0m'
-GR='[32m'
-RD='[31m'
-GOLD_MAIN='\033[38;5;220m'  # Or pour le logo et les barres
+LN='\033[34m'
+BG='\033[44m'
+NC='\033[0m'
+GR='\033[32m'
+RD='\033[31m'
+GOLD_MAIN='\033[38;5;220m'
+BLUE_BAR='\033[34m'
 BOLD='\033[1m'
 
 # ==============================================================================
-#  FONCTION : FONCTION BARRE DE PROGRESSION (10 BLOCS)
+#  FONCTION : BARRE DE PROGRESSION (10 BLOCS)
 # ==============================================================================
 draw_bar() {
     local val=${1:-0}
@@ -34,7 +35,7 @@ uptime="$(uptime -p 2>/dev/null | cut -d " " -f 2-10)"
 IPV4=$(curl -s -4 ifconfig.co)
 IPV6=$(curl -s -6 ifconfig.co)
 VERSION_FILE="/etc/version"
-INSTALLED_VERSION=$(cat "$VERSION_FILE" 2>/dev/null || echo "0.0")
+INSTALLED_VERSION=$(cat "$VERSION_FILE" 2>/dev/null || echo "2.3.0")
 LATEST_VERSION=$(curl -sS "$SERVER_HOST/version" || echo "$INSTALLED_VERSION")
 UPDATE_AVAILABLE=0
 
@@ -47,48 +48,36 @@ CPU_BAR=$(draw_bar ${CPU_USAGE:-0})
 RAM_BAR=$(draw_bar ${RAM_USAGE:-0})
 
 version_greater() {
-[ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -n1)" = "$1" ] && [ "$1" != "$2" ]
+    [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -n1)" = "$1" ] && [ "$1" != "$2" ]
 }
 
 if version_greater "$LATEST_VERSION" "$INSTALLED_VERSION"; then
-UPDATE_AVAILABLE=1
-wget -q -O /usr/local/sbin/update "$SERVER_HOST/menu/update.sh" && chmod +x /usr/local/sbin/update
+    UPDATE_AVAILABLE=1
+    wget -q -O /usr/local/sbin/update "$SERVER_HOST/menu/update.sh" && chmod +x /usr/local/sbin/update
 fi
 
 if [ -f /etc/os-release ]; then
-. /etc/os-release
-OS="$NAME"
-VER="$VERSION_ID"
+    . /etc/os-release
+    OS="$NAME"
+    VER="$VERSION_ID"
 else
-OS=$(uname -s)
-VER=$(uname -r)
+    OS=$(uname -s)
+    VER=$(uname -r)
 fi
 
 nginx=$( systemctl is-active nginx 2>/dev/null )
-if [[ $nginx == "active" ]]; then
-status_nginx="${GR}RUN${NC}"
-else
-status_nginx="${RD}OFF${NC}"
-fi
+if [[ $nginx == "active" ]]; then status_nginx="${GR}RUN${NC}"; else status_nginx="${RD}OFF${NC}"; fi
 
 xray=$( systemctl is-active xray 2>/dev/null )
-if [[ $xray == "active" ]]; then
-status_xray="${GR}RUN${NC}"
-else
-status_xray="${RD}OFF${NC}"
-fi
+if [[ $xray == "active" ]]; then status_xray="${GR}RUN${NC}"; else status_xray="${RD}OFF${NC}"; fi
 
 ssh_ws=$( systemctl is-active ws-stunnel 2>/dev/null )
-if [[ $ssh_ws == "active" ]]; then
-status_ws="${GR}RUN${NC}"
-else
-status_ws="${RD}OFF${NC}"
-fi
+if [[ $ssh_ws == "active" ]]; then status_ws="${GR}RUN${NC}"; else status_ws="${RD}OFF${NC}"; fi
 
 clear
 
 # ==============================================================================
-#  1. BANNER ASCII 4K "THE_S" EN OR ET CENTRÉE
+#  1. BANNER ASCII "THE_S"
 # ==============================================================================
 read -r -d '' BANNER << 'EOF'
 ████████╗██╗  ██╗███████╗    ███████╗
@@ -113,67 +102,64 @@ done <<< "$BANNER"
 echo -e "${NC}"
 
 # ==============================================================================
-#  2. BLOCS DU MENU AVEC BARRES CPU/RAM
+#  2. BLOCS SYSTEME ET SERVICES
 # ==============================================================================
-echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-echo -e "${LN}┃${NC}  OS         : $OS $VER"
-echo -e "${LN}┃${NC}  UPTIME     : $uptime"
-printf "${LN}┃${NC}  CPU USAGE  : [${GOLD_MAIN}%s${NC}] ${GOLD_MAIN}%3d%%${NC}\n" "$CPU_BAR" "${CPU_USAGE:-0}"
-printf "${LN}┃${NC}  RAM USAGE  : [${GOLD_MAIN}%s${NC}] ${GOLD_MAIN}%3d%%${NC}\n" "$RAM_BAR" "${RAM_USAGE:-0}"
-echo -e "${LN}┃${NC}  IPv4       : ${IPV4:-N/A}"
+echo -e "${LN}┌──────────────────────────────────────────────────┐${NC}"
+echo -e "${LN}│${NC}  OS         : $OS $VER"
+echo -e "${LN}│${NC}  UPTIME     : $uptime"
+printf "${LN}│${NC}  CPU USAGE  : [${BLUE_BAR}%s${NC}] %d%%\n" "$CPU_BAR" "${CPU_USAGE:-0}"
+printf "${LN}│${NC}  RAM USAGE  : [${BLUE_BAR}%s${NC}] %d%%\n" "$RAM_BAR" "${RAM_USAGE:-0}"
+echo -e "${LN}│${NC}  IPV4       : ${IPV4:-N/A}"
 if [ -n "$IPV6" ]; then
-echo -e "${LN}┃${NC}  IPv6       : $IPV6"
+echo -e "${LN}│${NC}  IPV6       : $IPV6"
 fi
-echo -e "${LN}┃${NC}  DOMAIN     : $domain"
-echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-echo -e "${LN}┃${NC}   NGINX : [${status_nginx}]    XRAY : [${status_xray}]    WS : [${status_ws}]"
-echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-echo -e "${LN}┃${NC} ${BG}                       MENU                     ${NC} ${LN}┃${NC}"
-echo -e "${LN}┃${NC}"
-echo -e "${LN}┃${NC} [01] • SSH/WS MENU        [04] • TROJAN MENU"
-echo -e "${LN}┃${NC} [02] • VMESS MENU         [05] • SOCKS MENU"
-echo -e "${LN}┃${NC} [03] • VLESS MENU         [06] • ZIVPN MENU"
-echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━ 🜲THE_S ━━━━━━━━━━━━━━━━━━━┛${NC}"
-echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-echo -e "${LN}┃${NC} ${BG}                      TOOLS                     ${NC} ${LN}┃${NC}"
-echo -e "${LN}┃${NC}"
-echo -e "${LN}┃${NC} [07] • DNS PANEL          [11] • NETGUARD PANEL"
-echo -e "${LN}┃${NC} [08] • DOMAIN PANEL       [12] • VPN PORT INFO"
-echo -e "${LN}┃${NC} [09] • IPV6 PANEL         [13] • CLEAN VPS LOGS"
-echo -e "${LN}┃${NC} [10] • VPS STATUS         [14] • 🜲THE_S BOT PANEL"
-echo -e "${LN}┃${NC} [15] • UNINSTALL THE_S    [16] • FAST DNS MENU"
-echo -e "${LN}┃${NC}"
-echo -e "${LN}┃${NC} [00] • EXIT               [88] • REBOOT VPS"
-echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-echo -e "${LN}┃${NC} ${BG}                   WEB PANEL                    ${NC} ${LN}┃${NC}"
-echo -e "${LN}┃${NC}"
-echo -e "${LN}┃${NC} [18] • 🜲THE_S PANEL"
-echo -e "${LN}┃${NC}"
-echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+echo -e "${LN}│${NC}  DOMAIN     : $domain"
+echo -e "${LN}└──────────────────────────────────────────────────┘${NC}"
+echo ""
+echo -e " NGINX : [${status_nginx}]    XRAY : [${status_xray}]    WS : [${status_ws}]"
+echo ""
+
+# ==============================================================================
+#  3. MENUS
+# ==============================================================================
+echo -e "${LN}┌────────────────────── MENU ──────────────────────┐${NC}"
+echo -e "${LN}│${NC}"
+echo -e "${LN}│${NC}  [01]  SSH/WS MENU        [04]  TROJAN MENU"
+echo -e "${LN}│${NC}  [02]  VMESS MENU         [05]  SOCKS MENU"
+echo -e "${LN}│${NC}  [03]  VLESS MENU         [06]  ZIVPN MENU"
+echo -e "${LN}└──────────────────────────────────────────────────┘${NC}"
+
+echo -e "${LN}┌───────────────────── TOOLS ──────────────────────┐${NC}"
+echo -e "${LN}│${NC}"
+echo -e "${LN}│${NC}  [07]  DNS PANEL          [11]  NETGUARD PANEL"
+echo -e "${LN}│${NC}  [08]  DOMAIN PANEL       [12]  VPN PORT INFO"
+echo -e "${LN}│${NC}  [09]  IPv6 PANEL         [13]  CLEAN VPS LOGS"
+echo -e "${LN}│${NC}  [10]  VPS STATUS         [14]  THE_S BOT PANEL"
+echo -e "${LN}│${NC}  [15]  UNINSTALL THE_S    [88]  REBOOT VPS"
+echo -e "${LN}│${NC}  [00]  EXIT"
+echo -e "${LN}│${NC}  [16]  FAST DNS MENU"
+echo -e "${LN}└──────────────────────────────────────────────────┘${NC}"
+
+echo -e "${LN}┌─────────────────── WEB PANEL ────────────────────┐${NC}"
+echo -e "${LN}│${NC}"
+echo -e "${LN}│${NC}  [18]  THE_S PANEL"
+echo -e "${LN}│${NC}"
+echo -e "${LN}└──────────────────────────────────────────────────┘${NC}"
 
 if [ "$UPDATE_AVAILABLE" -eq 1 ]; then
-echo -e "${RD}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-echo -e "${RD}┃${NC} ${RD}[99] • UPDATE SCRIPT (v$LATEST_VERSION)${NC}"
-echo -e "${RD}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+echo -e "${RD}┌──────────────────────────────────────────────────┐${NC}"
+echo -e "${RD}│${NC}  ${RD}[99]  UPDATE SCRIPT (v$LATEST_VERSION)${NC}"
+echo -e "${RD}└──────────────────────────────────────────────────┘${NC}"
 fi
 
-# Footer en Rouge et Texte centré
-VERSION=$(cat /etc/version 2>/dev/null || echo "2.1.0")
-FOOTER_TEXT="VERSION:  ${VERSION}  |  SCRIPT BY: 🜲THE_S  
-|  CONTACT Admin: +237 621 67 16 48"
-FOOTER_LEN=${#FOOTER_TEXT}
-FOOTER_PADDING=$(( (TERM_WIDTH - FOOTER_LEN) / 2 ))
-
-echo -e "${RD}${BOLD}"
-if [ $FOOTER_PADDING -gt 0 ]; then
-    printf "%*s%s\n" "$FOOTER_PADDING" "" "$FOOTER_TEXT"
-else
-    echo "$FOOTER_TEXT"
-fi
-echo -e "${NC}"
+# ==============================================================================
+#  4. FOOTER
+# ==============================================================================
+VERSION=$(cat /etc/version 2>/dev/null || echo "2.3.0")
+echo -e ""
+echo -e "${RD}${BOLD}VERSION: ${VERSION}  |  SCRIPT BY THE_S${NC}"
+echo -e "${RD}${BOLD}CONTACT Admin: +237 621 67 16 48${NC}"
+echo -e ""
 
 read -p " Select menu :  "  opt
 echo -e ""
@@ -201,3 +187,4 @@ case $opt in
 0 | 00) exit ;;
 *) clear ; menu ;;
 esac
+

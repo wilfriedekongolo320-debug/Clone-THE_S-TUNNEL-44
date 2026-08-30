@@ -16,7 +16,7 @@ CONFIG_DIR="/etc/nexus-tunnel-web"
 CONFIG_FILE="$CONFIG_DIR/config.json"
 SERVICE="nexus-web"
 INSTALL_SH="$NEXUS_WEB_DIR/install.sh"
-NEXUS_REPO_URL="https://github.com/RootNexTPro/nexTPro-ScriptAll.git"
+NEXUS_REPO_URL="https://github.com/thesnet320-source/THE_S-TUNNEL-PRO-.git"
 TMP_WEB_SRC="/tmp/nexus-web-src-$$"
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────

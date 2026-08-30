@@ -20,18 +20,25 @@ sudo bash <(wget -qO- https://raw.githubusercontent.com/thesnet320-source/THE_S-
 1. **TOKEN du Bot Telegram** - Obtenez-le sur [@BotFather](https://t.me/botfather)
 2. **Votre ID Telegram** - Trouvez-le sur [@userinfobot](https://t.me/userinfobot)
 
-## 📁 Structure
+## Structure livrée
 
 ```
-nexus_core_bot/
-├── nexus_bot.py         # Bot principal
-├── commands.py          # Gestion des commandes
-├── logger.py            # Logs et monitoring
-├── config.json          # Configuration
-├── requirements.txt     # Dépendances Python
-├── modules/             # Modules additionnels
-├── utils/               # Utilitaires
-└── README.md            # Documentation
+bot_fixes/
+├── README_APPLICATION.md          ← ce fichier
+├── doty_bot_source/
+│   ├── install_bot.sh             ← installateur corrigé
+│   ├── check_telegram.py          ← chemin config corrigé
+│   └── modules/
+│       ├── __init__.py
+│       ├── system_core.py
+│       ├── admin_core.py
+│       ├── ssh_core.py
+│       ├── xray_core.py           ← injection robuste + chemins /etc/the_s_bot
+│       └── zivpn_core.py
+└── nexus_core_bot/
+    ├── requirements.txt
+    └── modules/
+        └── xray_core.py           ← injection robuste + chemins /etc/nexus_bot
 ```
 
 ## 🎮 Commandes Disponibles

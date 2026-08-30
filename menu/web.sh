@@ -1,15 +1,22 @@
 #!/bin/bash
 # ============================================================
-#  Menu 18 — Nexus Tunnel Web
+#  Menu 18 — Nexus Tunnel Web (Cyberpunk / Neo-Terminal)
 #  Manages the Nexus Tunnel Web panel from terminal.
 # ============================================================
 
-LN='\e[36m'
-NC='\e[0m'
-BG='\e[44m'
-RD='\e[31m'
-GR='\e[32m'
-YL='\e[33m'
+# ==============================================================================
+#  PALETTE NEON CYBERPUNK (ANSI 256)
+# ==============================================================================
+export C_RESET='\033[0m'
+export C_BOLD='\033[1m'
+export C_CYAN='\033[38;5;45m'
+export C_MAGENTA='\033[38;5;201m'
+export C_GREEN='\033[38;5;46m'
+export C_GOLD='\033[38;5;220m'
+export C_RED='\033[38;5;196m'
+export C_BLUE='\033[38;5;39m'
+export C_GRAY='\033[38;5;242m'
+export C_WHITE='\033[38;5;255m'
 
 NEXUS_WEB_DIR="/opt/nexus-tunnel-web"
 CONFIG_DIR="/etc/nexus-tunnel-web"
@@ -36,7 +43,6 @@ set_config_value() {
 import json, sys
 path, key, value = sys.argv[1], sys.argv[2], sys.argv[3]
 with open(path) as f: d = json.load(f)
-# Try to cast value to int/float if appropriate
 try: value = int(value)
 except ValueError:
     try: value = float(value)
@@ -74,35 +80,31 @@ wait_key() {
 }
 
 log_info() {
-  echo -e "${YL}[INFO]${NC} $*"
+  echo -e " ${C_GOLD}[INFO]${C_RESET} $*"
 }
 
 resolve_web_source_dir() {
   local base src
   base="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-  # 1) bundled next to menu dir in repository clone
   src="$base/../nexus-web"
   if [ -d "$src" ] && [ -f "$src/install.sh" ]; then
     echo "$src"
     return 0
   fi
 
-  # 2) already copied on server where menu expects it
   src="/usr/local/sbin/nexus-web"
   if [ -d "$src" ] && [ -f "$src/install.sh" ]; then
     echo "$src"
     return 0
   fi
 
-  # 3) already installed app source
   src="/opt/nexus-tunnel-web"
   if [ -d "$src" ] && [ -f "$src/install.sh" ]; then
     echo "$src"
     return 0
   fi
 
-  # 4) fallback: shallow clone repository in /tmp and use nexus-web folder
   rm -rf "$TMP_WEB_SRC"
   if git clone --depth 1 "$NEXUS_REPO_URL" "$TMP_WEB_SRC" >/dev/null 2>&1; then
     src="$TMP_WEB_SRC/nexus-web"
@@ -146,66 +148,62 @@ function nexus_web_menu() {
   clear
   local status_str
   if web_is_running; then
-    status_str="${GR}RUNNING${NC}"
+    status_str="${C_GREEN}⚡ ONLINE${C_RESET}"
   else
-    status_str="${RD}STOPPED${NC}"
+    status_str="${C_RED}✖ OFFLINE${C_RESET}"
   fi
 
   local url
   url=$(get_web_url 2>/dev/null || echo "http://localhost:2087")
+  local admin_usr
+  admin_usr=$(get_config_value admin_user 2>/dev/null || echo 'N/A')
 
-  echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-  echo -e "${LN}┃${NC} ${BG}           NEXUS TUNNEL WEB — MENU 18           ${NC} ${LN}┃${NC}"
-  echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-  echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-  echo -e "${LN}┃${NC}  Status  : ${status_str}"
-  echo -e "${LN}┃${NC}  URL     : ${GR}${url}${NC}"
-  echo -e "${LN}┃${NC}  Admin   : $(get_config_value admin_user 2>/dev/null || echo 'N/A')"
-  echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-  echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
+  echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+  echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ NEXUS TUNNEL WEB — CONTROL CENTER${C_RESET}                             ${C_MAGENTA}║${C_RESET}"
+  echo -e "${C_MAGENTA}╠═════════════════════════════════════════════════════════════════╣${C_RESET}"
+  printf "${C_MAGENTA}║${C_RESET}  ${C_WHITE}Status${C_RESET}  : %-52b ${C_MAGENTA}║${C_RESET}\n" "$status_str"
+  printf "${C_MAGENTA}║${C_RESET}  ${C_WHITE}URL${C_RESET}     : %-46s ${C_MAGENTA}║${C_RESET}\n" "$url"
+  printf "${C_MAGENTA}║${C_RESET}  ${C_WHITE}Admin${C_RESET}   : %-46s ${C_MAGENTA}║${C_RESET}\n" "$admin_usr"
+  echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
+  echo ""
 
   if ! web_is_installed; then
-    echo -e "${LN}┃${NC} ${YL}  Nexus Tunnel Web is NOT installed.${NC}"
-    echo -e "${LN}┃${NC}"
-    echo -e "${LN}┃${NC} ${GR}[1]${NC} • Install Nexus Tunnel Web"
-    echo -e "${LN}┃${NC} ${GR}[0]${NC} • Return to main menu"
-    echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+    echo -e "  ${C_GOLD}[!] Nexus Tunnel Web is NOT installed.${C_RESET}"
     echo ""
-    read -rp "  Select option : " opt
+    echo -e "   ${C_GREEN}[01]${C_RESET} INSTALL NEXUS TUNNEL WEB"
+    echo -e "   ${C_GRAY}[00] MAIN MENU${C_RESET}"
+    echo ""
+    echo -e "${C_GRAY}───────────────────────────────────────────────────────────────────${C_RESET}"
+    read -rp "  🜲 Select option : " opt
     case "$opt" in
-      1) ntw_install ;;
+      1|01) ntw_install ;;
       0|00) menu ;;
       *) nexus_web_menu ;;
     esac
     return
   fi
 
-  echo -e "${LN}┃${NC} ${BG}              SITE ADMINISTRATION               ${NC} ${LN}┃${NC}"
-  echo -e "${LN}┃${NC}"
-  echo -e "${LN}┃${NC} [1] • Modifier identifiants admin"
-  echo -e "${LN}┃${NC} [2] • Manager Admin"
-  echo -e "${LN}┃${NC} [3] • Manager Client"
-  echo -e "${LN}┃${NC} [4] • Manager Plans / Produits"
-  echo -e "${LN}┃${NC} [5] • Logs & Audit"
-  echo -e "${LN}┃${NC} [6] • Statut & Contrôle du service"
-  echo -e "${LN}┃${NC} [7] • Mettre à jour Nexus Tunnel Web"
-  echo -e "${LN}┃${NC} [8] • Désinstaller Nexus Tunnel Web"
-  echo -e "${LN}┃${NC} [0] • Retour"
-  echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-  echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━●${NC}"
+  echo -e "${C_CYAN}►► SITE ADMINISTRATION ──────────────────────────────────────────${C_RESET}"
+  echo -e "   ${C_MAGENTA}[01]${C_RESET} MODIFIER CREDENTIALS      ${C_MAGENTA}[05]${C_RESET} LOGS & AUDIT"
+  echo -e "   ${C_MAGENTA}[02]${C_RESET} MANAGER ADMIN             ${C_MAGENTA}[06]${C_RESET} STATUT & CONTRÔLE"
+  echo -e "   ${C_MAGENTA}[03]${C_RESET} MANAGER CLIENT            ${C_GOLD}[07]${C_RESET} METTRE À JOUR PANEL"
+  echo -e "   ${C_MAGENTA}[04]${C_RESET} MANAGER PLANS & OFFRES    ${C_RED}[08]${C_RESET} DÉSINSTALLER PANEL"
   echo ""
-  read -rp "  Select option : " opt
+  echo -e "   ${C_GRAY}[00] RETOUR MAIN MENU${C_RESET}"
+  echo ""
+  echo -e "${C_GRAY}───────────────────────────────────────────────────────────────────${C_RESET}"
+  read -rp "  🜲 Select option [00-08] : " opt
   echo ""
 
   case "$opt" in
-    1) ntw_change_credentials ;;
-    2) ntw_manager_admin ;;
-    3) ntw_manager_client ;;
-    4) ntw_manager_plans ;;
-    5) ntw_view_logs ;;
-    6) ntw_service_control ;;
-    7) ntw_update ;;
-    8) ntw_uninstall ;;
+    1|01) ntw_change_credentials ;;
+    2|02) ntw_manager_admin ;;
+    3|03) ntw_manager_client ;;
+    4|04) ntw_manager_plans ;;
+    5|05) ntw_view_logs ;;
+    6|06) ntw_service_control ;;
+    7|07) ntw_update ;;
+    8|08) ntw_uninstall ;;
     0|00) menu ;;
     *) nexus_web_menu ;;
   esac
@@ -214,9 +212,9 @@ function nexus_web_menu() {
 # ─── INSTALL ──────────────────────────────────────────────────────────────────
 function ntw_install() {
   clear
-  echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-  echo -e "${LN}┃${NC} ${BG}         INSTALLATION — NEXUS TUNNEL WEB         ${NC} ${LN}┃${NC}"
-  echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+  echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+  echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ INSTALLATION — NEXUS TUNNEL WEB${C_RESET}                               ${C_MAGENTA}║${C_RESET}"
+  echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
   echo ""
   echo -e "  Ce script va installer l'interface web Nexus Tunnel."
   echo -e "  Vous aurez besoin de définir un identifiant admin."
@@ -228,12 +226,11 @@ function ntw_install() {
   elif [ -f /opt/nexus-tunnel-web/install.sh ]; then
     bash /opt/nexus-tunnel-web/install.sh
   else
-    echo -e "${RD}  [ERROR] Source install script not found.${NC}"
+    echo -e "  ${C_RED}✖ [ERROR] Source install script not found.${C_RESET}"
     echo -e "  Expected one of:"
     echo -e "    - /usr/local/sbin/nexus-web/install.sh"
     echo -e "    - /opt/nexus-tunnel-web/install.sh"
     echo -e "    - <repo>/nexus-web/install.sh"
-    echo -e "  Tip: check internet access if auto-fetch failed."
     wait_key
     nexus_web_menu
     return
@@ -247,38 +244,34 @@ function ntw_install() {
 # ─── CHANGE CREDENTIALS ───────────────────────────────────────────────────────
 function ntw_change_credentials() {
   clear
-  echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-  echo -e "${LN}┃${NC} ${BG}           MODIFIER IDENTIFIANTS ADMIN           ${NC} ${LN}┃${NC}"
-  echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+  echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+  echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ MODIFIER IDENTIFIANTS ADMIN${C_RESET}                            ${C_MAGENTA}║${C_RESET}"
+  echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
   echo ""
 
-  local current_user
-  current_user=$(get_config_value admin_user)
-
-  read -rp "  Username actuel : " curr_pass_user
-  read -srp "  Mot de passe actuel : " curr_pass; echo ""
+  read -rp "  ► Username actuel : " curr_pass_user
+  read -srp "  ► Mot de passe actuel : " curr_pass; echo ""
   echo ""
 
-  # Get token via API
   local resp token_val
   resp=$(api_login "$curr_pass_user" "$curr_pass")
   token_val=$(echo "$resp" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('token',''))" 2>/dev/null)
 
   if [ -z "$token_val" ]; then
-    echo -e "${RD}  [ERROR] Identifiants incorrects.${NC}"
+    echo -e "  ${C_RED}✖ [ERROR] Identifiants incorrects.${C_RESET}"
     wait_key
     nexus_web_menu
     return
   fi
 
-  echo -e "  ${GR}Authentification réussie!${NC}"
+  echo -e "  ${C_GREEN}⚡ Authentification réussie!${C_RESET}"
   echo ""
-  read -rp "  Nouveau username (laisser vide pour ne pas changer) : " new_user
-  read -srp "  Nouveau mot de passe (laisser vide pour ne pas changer) : " new_pass; echo ""
-  read -srp "  Confirmer nouveau mot de passe : " new_pass2; echo ""
+  read -rp "  ► Nouveau username (vide=inchangé) : " new_user
+  read -srp "  ► Nouveau mot de passe (vide=inchangé) : " new_pass; echo ""
+  read -srp "  ► Confirmer nouveau mot de passe : " new_pass2; echo ""
 
   if [ -n "$new_pass" ] && [ "$new_pass" != "$new_pass2" ]; then
-    echo -e "${RD}  [ERROR] Les mots de passe ne correspondent pas.${NC}"
+    echo -e "  ${C_RED}✖ [ERROR] Les mots de passe ne correspondent pas.${C_RESET}"
     wait_key
     nexus_web_menu
     return
@@ -296,12 +289,11 @@ function ntw_change_credentials() {
   msg=$(echo "$result" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('message',d.get('error','')))" 2>/dev/null)
 
   if echo "$result" | grep -q '"message"'; then
-    # Update config file
     [ -n "$new_user" ] && { set_config_value admin_user "$new_user"; systemctl restart "$SERVICE" 2>/dev/null; }
     [ -n "$new_pass" ] && { set_config_value admin_password "$new_pass"; systemctl restart "$SERVICE" 2>/dev/null; }
-    echo -e "  ${GR}[OK] $msg${NC}"
+    echo -e "  ${C_GREEN}⚡ [OK] $msg${C_RESET}"
   else
-    echo -e "  ${RD}[ERROR] $msg${NC}"
+    echo -e "  ${C_RED}✖ [ERROR] $msg${C_RESET}"
   fi
 
   wait_key
@@ -311,30 +303,27 @@ function ntw_change_credentials() {
 # ─── MANAGER ADMIN ────────────────────────────────────────────────────────────
 function ntw_manager_admin() {
   clear
-  echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-  echo -e "${LN}┃${NC} ${BG}                MANAGER ADMIN                   ${NC} ${LN}┃${NC}"
-  echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-  echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-  echo -e "${LN}┃${NC} [1] • Créer un compte admin"
-  echo -e "${LN}┃${NC} [2] • Voir les informations des admins"
-  echo -e "${LN}┃${NC} [3] • Modifier les informations d'un admin"
-  echo -e "${LN}┃${NC} [4] • Suspendre un admin"
-  echo -e "${LN}┃${NC} [5] • Promouvoir un admin en super admin"
-  echo -e "${LN}┃${NC} [0] • Retour"
-  echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+  echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+  echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ ADMIN MANAGEMENT${C_RESET}                                              ${C_MAGENTA}║${C_RESET}"
+  echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
   echo ""
-  read -rp "  Sélectionner : " opt
+  echo -e "   ${C_MAGENTA}[01]${C_RESET} CRÉER UN COMPTE ADMIN    ${C_MAGENTA}[04]${C_RESET} SUSPENDRE UN ADMIN"
+  echo -e "   ${C_MAGENTA}[02]${C_RESET} VOIR LES ADMINS          ${C_MAGENTA}[05]${C_RESET} PROMOUVOIR EN SUPER_ADMIN"
+  echo -e "   ${C_MAGENTA}[03]${C_RESET} MODIFIER UN ADMIN        ${C_GRAY}[00] RETOUR${C_RESET}"
+  echo ""
+  echo -e "${C_GRAY}───────────────────────────────────────────────────────────────────${C_RESET}"
+  read -rp "  🜲 Select option : " opt
   echo ""
 
   local token
   token=$(ntw_get_token) || { nexus_web_menu; return; }
 
   case "$opt" in
-    1) ntw_create_admin "$token" ;;
-    2) ntw_list_admins "$token" ;;
-    3) ntw_edit_admin "$token" ;;
-    4) ntw_suspend_admin "$token" ;;
-    5) ntw_promote_admin "$token" ;;
+    1|01) ntw_create_admin "$token" ;;
+    2|02) ntw_list_admins "$token" ;;
+    3|03) ntw_edit_admin "$token" ;;
+    4|04) ntw_suspend_admin "$token" ;;
+    5|05) ntw_promote_admin "$token" ;;
     0|00) nexus_web_menu ;;
     *) ntw_manager_admin ;;
   esac
@@ -349,7 +338,7 @@ function ntw_get_token() {
   token=$(echo "$resp" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('token',''))" 2>/dev/null)
 
   if [ -z "$token" ]; then
-    echo -e "${RD}  [ERROR] Impossible de s'authentifier. Vérifiez que le service est actif.${NC}" >&2
+    echo -e "  ${C_RED}✖ Impossible de s'authentifier. Vérifiez le service.${C_RESET}" >&2
     wait_key >&2
     return 1
   fi
@@ -359,15 +348,15 @@ function ntw_get_token() {
 function ntw_create_admin() {
   local token="$1"
   clear
-  echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-  echo -e "${LN}┃${NC} ${BG}              CRÉER COMPTE ADMIN                ${NC} ${LN}┃${NC}"
-  echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+  echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+  echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ CRÉER COMPTE ADMIN${C_RESET}                                            ${C_MAGENTA}║${C_RESET}"
+  echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
   echo ""
 
-  read -rp "  Nouveau username : " new_user
-  read -srp "  Mot de passe     : " new_pass; echo ""
-  echo "  Rôle : [1] admin  [2] super_admin"
-  read -rp "  Choix : " role_opt
+  read -rp "  ► Nouveau username : " new_user
+  read -srp "  ► Mot de passe     : " new_pass; echo ""
+  echo -e "  ► Rôle : ${C_CYAN}[1] Admin${C_RESET}  ${C_GOLD}[2] Super Admin${C_RESET}"
+  read -rp "  ► Choix : " role_opt
   local role="admin"
   [ "$role_opt" = "2" ] && role="super_admin"
 
@@ -376,11 +365,11 @@ function ntw_create_admin() {
     "{\"username\":\"$new_user\",\"password\":\"$new_pass\",\"role\":\"$role\"}")
 
   if echo "$result" | grep -q '"id"'; then
-    echo -e "  ${GR}[OK] Admin '$new_user' ($role) créé avec succès!${NC}"
+    echo -e "  ${C_GREEN}⚡ [OK] Admin '$new_user' ($role) créé avec succès!${C_RESET}"
   else
     local err
     err=$(echo "$result" | python3 -c "import json,sys; print(json.load(sys.stdin).get('error','Unknown error'))" 2>/dev/null)
-    echo -e "  ${RD}[ERROR] $err${NC}"
+    echo -e "  ${C_RED}✖ [ERROR] $err${C_RESET}"
   fi
 
   wait_key
@@ -390,9 +379,9 @@ function ntw_create_admin() {
 function ntw_list_admins() {
   local token="$1"
   clear
-  echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-  echo -e "${LN}┃${NC} ${BG}             LISTE DES ADMINS                   ${NC} ${LN}┃${NC}"
-  echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+  echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+  echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ LISTE DES ADMINS${C_RESET}                                              ${C_MAGENTA}║${C_RESET}"
+  echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
   echo ""
 
   local result
@@ -404,10 +393,12 @@ admins = json.load(sys.stdin)
 if isinstance(admins, dict) and 'error' in admins:
     print(f'  [ERROR] {admins[\"error\"]}')
 else:
-    print(f'  {\"ID\":<36}  {\"Username\":<15}  {\"Role\":<12}  {\"Status\":<10}  Created')
-    print('  ' + '-'*90)
+    print('\033[38;5;45m───────────────────────────────────────────────────────────────────\033[0m')
+    print(f' {\"USERNAME\":<18} {\"ROLE\":<14} {\"STATUS\":<12} {\"CREATED\":<12}')
+    print('\033[38;5;45m───────────────────────────────────────────────────────────────────\033[0m')
     for a in admins:
-        print(f'  {a[\"id\"]:<36}  {a[\"username\"]:<15}  {a[\"role\"]:<12}  {a[\"status\"]:<10}  {a[\"created_at\"][:10]}')
+        print(f'  {a[\"username\"]:<18} {a[\"role\"]:<14} {a[\"status\"]:<12} {a[\"created_at\"][:10]:<12}')
+    print('\033[38;5;45m───────────────────────────────────────────────────────────────────\033[0m')
 " 2>/dev/null || echo "$result"
 
   wait_key
@@ -417,22 +408,24 @@ else:
 function ntw_edit_admin() {
   local token="$1"
   clear
-  echo -e "${LN}┃${NC} ${BG}           MODIFIER INFO ADMIN                  ${NC} ${LN}┃${NC}"
+  echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+  echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ MODIFIER INFO ADMIN${C_RESET}                                           ${C_MAGENTA}║${C_RESET}"
+  echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
   echo ""
 
-  local result admins_list
+  local result
   result=$(api_call "GET" "/admins" "$token")
   echo "$result" | python3 -c "
 import json, sys
 admins = json.load(sys.stdin)
 for i, a in enumerate(admins, 1):
-    print(f'  [{i}] {a[\"username\"]} ({a[\"role\"]}) — {a[\"id\"]}')
+    print(f'  [{i}] {a[\"username\"]} ({a[\"role\"]}) — ID: {a[\"id\"]}')
 " 2>/dev/null
 
   echo ""
-  read -rp "  Entrez l'ID de l'admin à modifier : " admin_id
-  read -rp "  Nouveau username (vide=inchangé) : " nu
-  read -srp "  Nouveau mot de passe (vide=inchangé) : " np; echo ""
+  read -rp "  ► Entrez l'ID de l'admin à modifier : " admin_id
+  read -rp "  ► Nouveau username (vide=inchangé) : " nu
+  read -srp "  ► Nouveau mot de passe (vide=inchangé) : " np; echo ""
 
   local body='{'
   local sep=""
@@ -441,16 +434,16 @@ for i, a in enumerate(admins, 1):
   body+='}'
 
   if [ "$body" = '{}' ]; then
-    echo -e "  ${YL}Aucune modification.${NC}"
+    echo -e "  ${C_GOLD}[!] Aucune modification.${C_RESET}"
   else
     local res
     res=$(api_call "PUT" "/admins/$admin_id" "$token" "$body")
     if echo "$res" | grep -q '"message"'; then
-      echo -e "  ${GR}[OK] Admin modifié.${NC}"
+      echo -e "  ${C_GREEN}⚡ [OK] Admin modifié.${C_RESET}"
     else
       local err
       err=$(echo "$res" | python3 -c "import json,sys; print(json.load(sys.stdin).get('error',''))" 2>/dev/null)
-      echo -e "  ${RD}[ERROR] $err${NC}"
+      echo -e "  ${C_RED}✖ [ERROR] $err${C_RESET}"
     fi
   fi
 
@@ -461,15 +454,15 @@ for i, a in enumerate(admins, 1):
 function ntw_suspend_admin() {
   local token="$1"
   clear
-  read -rp "  ID de l'admin à suspendre : " admin_id
+  read -rp "  ► ID de l'admin à suspendre : " admin_id
   local res
   res=$(api_call "POST" "/admins/$admin_id/suspend" "$token")
   if echo "$res" | grep -q '"message"'; then
-    echo -e "  ${GR}[OK] Admin suspendu.${NC}"
+    echo -e "  ${C_GREEN}⚡ [OK] Admin suspendu.${C_RESET}"
   else
     local err
     err=$(echo "$res" | python3 -c "import json,sys; print(json.load(sys.stdin).get('error',''))" 2>/dev/null)
-    echo -e "  ${RD}[ERROR] $err${NC}"
+    echo -e "  ${C_RED}✖ [ERROR] $err${C_RESET}"
   fi
   wait_key
   ntw_manager_admin
@@ -478,15 +471,15 @@ function ntw_suspend_admin() {
 function ntw_promote_admin() {
   local token="$1"
   clear
-  read -rp "  ID de l'admin à promouvoir : " admin_id
+  read -rp "  ► ID de l'admin à promouvoir : " admin_id
   local res
   res=$(api_call "POST" "/admins/$admin_id/promote" "$token")
   if echo "$res" | grep -q '"message"'; then
-    echo -e "  ${GR}[OK] Admin promu en super_admin!${NC}"
+    echo -e "  ${C_GREEN}⚡ [OK] Admin promu en super_admin!${C_RESET}"
   else
     local err
     err=$(echo "$res" | python3 -c "import json,sys; print(json.load(sys.stdin).get('error',''))" 2>/dev/null)
-    echo -e "  ${RD}[ERROR] $err${NC}"
+    echo -e "  ${C_RED}✖ [ERROR] $err${C_RESET}"
   fi
   wait_key
   ntw_manager_admin
@@ -495,35 +488,27 @@ function ntw_promote_admin() {
 # ─── MANAGER CLIENT ───────────────────────────────────────────────────────────
 function ntw_manager_client() {
   clear
-  echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-  echo -e "${LN}┃${NC} ${BG}               MANAGER CLIENT                   ${NC} ${LN}┃${NC}"
-  echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-  echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-  echo -e "${LN}┃${NC}  Les clients sont gérés via l'interface web."
-  echo -e "${LN}┃${NC}  Accédez au site pour créer/modifier/supprimer."
-  echo -e "${LN}┃${NC}"
-  echo -e "${LN}┃${NC}  URL : ${GR}$(get_web_url 2>/dev/null)${NC}"
-  echo -e "${LN}┃${NC}"
-  echo -e "${LN}┃${NC} [1] • Voir la liste des clients"
-  echo -e "${LN}┃${NC} [2] • Créer un client (via API)"
-  echo -e "${LN}┃${NC} [3] • Renouveler un client (via API)"
-  echo -e "${LN}┃${NC} [4] • Suspendre un client (via API)"
-  echo -e "${LN}┃${NC} [5] • Supprimer un client (via API)"
-  echo -e "${LN}┃${NC} [0] • Retour"
-  echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+  echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+  echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ CLIENT MANAGEMENT${C_RESET}                                            ${C_MAGENTA}║${C_RESET}"
+  echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
   echo ""
-  read -rp "  Sélectionner : " opt
+  echo -e "   ${C_MAGENTA}[01]${C_RESET} LISTE DES CLIENTS         ${C_MAGENTA}[04]${C_RESET} SUSPENDRE UN CLIENT"
+  echo -e "   ${C_MAGENTA}[02]${C_RESET} CRÉER UN CLIENT           ${C_RED}[05]${C_RESET} SUPPRIMER UN CLIENT"
+  echo -e "   ${C_MAGENTA}[03]${C_RESET} RENOUVELER UN CLIENT       ${C_GRAY}[00] RETOUR${C_RESET}"
+  echo ""
+  echo -e "${C_GRAY}───────────────────────────────────────────────────────────────────${C_RESET}"
+  read -rp "  🜲 Select option : " opt
   echo ""
 
   local token
   token=$(ntw_get_token) || { nexus_web_menu; return; }
 
   case "$opt" in
-    1) ntw_list_clients "$token" ;;
-    2) ntw_create_client "$token" ;;
-    3) ntw_renew_client "$token" ;;
-    4) ntw_suspend_client "$token" ;;
-    5) ntw_delete_client "$token" ;;
+    1|01) ntw_list_clients "$token" ;;
+    2|02) ntw_create_client "$token" ;;
+    3|03) ntw_renew_client "$token" ;;
+    4|04) ntw_suspend_client "$token" ;;
+    5|05) ntw_delete_client "$token" ;;
     0|00) nexus_web_menu ;;
     *) ntw_manager_client ;;
   esac
@@ -532,21 +517,26 @@ function ntw_manager_client() {
 function ntw_list_clients() {
   local token="$1"
   clear
+  echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+  echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ LISTE DES CLIENTS ACTIVÉS${C_RESET}                                    ${C_MAGENTA}║${C_RESET}"
+  echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
+  echo ""
+
   local result
   result=$(api_call "GET" "/clients" "$token")
-  echo ""
-  echo -e "${LN}  LISTE DES CLIENTS${NC}"
-  echo ""
+
   echo "$result" | python3 -c "
 import json, sys
 clients = json.load(sys.stdin)
 if isinstance(clients, dict) and 'error' in clients:
     print(f'  [ERROR] {clients[\"error\"]}')
 else:
-    print(f'  {\"Username\":<20}  {\"Protocol\":<12}  {\"Status\":<10}  {\"Expires\":<12}  ID')
-    print('  ' + '-'*90)
+    print('\033[38;5;45m───────────────────────────────────────────────────────────────────\033[0m')
+    print(f' {\"USERNAME\":<18} {\"PROTO\":<10} {\"STATUS\":<10} {\"EXPIRATION\":<12}')
+    print('\033[38;5;45m───────────────────────────────────────────────────────────────────\033[0m')
     for c in clients:
-        print(f'  {c[\"username\"]:<20}  {c[\"protocol\"]:<12}  {c[\"status\"]:<10}  {c[\"expires_at\"]:<12}  {c[\"id\"]}')
+        print(f'  {c[\"username\"]:<18} {c[\"protocol\"]:<10} {c[\"status\"]:<10} {str(c.get(\"expires_at\",\"\"))[:10]:<12}')
+    print('\033[38;5;45m───────────────────────────────────────────────────────────────────\033[0m')
 " 2>/dev/null || echo "$result"
   wait_key
   ntw_manager_client
@@ -555,16 +545,18 @@ else:
 function ntw_create_client() {
   local token="$1"
   clear
-  echo -e "${LN}┃${NC} ${BG}              CRÉER UN CLIENT                   ${NC} ${LN}┃${NC}"
+  echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+  echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ CRÉER UN NOUVEAU CLIENT${C_RESET}                                      ${C_MAGENTA}║${C_RESET}"
+  echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
   echo ""
 
-  read -rp "  Username         : " username
-  read -rp "  Mot de passe     : " password
-  echo "  Protocoles : [1] SSH  [2] SlowDNS  [3] UDP Custom  [4] VMess  [5] VLESS  [6] Trojan  [7] ZipVPN"
-  read -rp "  Protocole       : " proto_opt
-  declare -A proto_map=([1]="ssh" [2]="slowdns" [3]="udpcustom" [4]="vmess" [5]="vless" [6]="trojan" [7]="zipvpn")
+  read -rp "  ► Username         : " username
+  read -rp "  ► Mot de passe     : " password
+  echo -e "  ► Protocoles : ${C_CYAN}[1] SSH  [2] SlowDNS  [3] UDP Custom  [4] VMess  [5] VLESS  [6] Trojan  [7] ZiVPN${C_RESET}"
+  read -rp "  ► Choix Protocole  : " proto_opt
+  declare -A proto_map=([1]="ssh" [2]="slowdns" [3]="udpcustom" [4]="vmess" [5]="vless" [6]="trojan" [7]="zivpn")
   local protocol="${proto_map[$proto_opt]:-ssh}"
-  read -rp "  Durée (jours)   : " days
+  read -rp "  ► Durée (jours)   : " days
 
   local result
   result=$(api_call "POST" "/clients" "$token" \
@@ -573,24 +565,25 @@ function ntw_create_client() {
   if echo "$result" | grep -q '"id"'; then
     local expires
     expires=$(echo "$result" | python3 -c "import json,sys; print(json.load(sys.stdin).get('expires_at',''))" 2>/dev/null)
-    echo -e "  ${GR}[OK] Client '$username' créé! Expiration: $expires${NC}"
-    # Show account data
+    echo ""
+    echo -e "  ${C_GREEN}⚡ [OK] Client '$username' créé! Expiration: $expires${C_RESET}"
     echo "$result" | python3 -c "
 import json, sys
 d = json.load(sys.stdin)
 ad = d.get('account_data', {})
-print()
-print('  ╔' + '━'*50 + '╗')
-print('  ║  DÉTAILS DU COMPTE')
-print('  ╚' + '━'*50 + '╝')
-for k, v in ad.items():
-    if v:
-        print(f'  {k:<20}: {v}')
+if ad:
+    print('\033[38;5;201m╔═════════════════════════════════════════════════════════════════╗\033[0m')
+    print('\033[38;5;201m║\033[0m \033[1m\033[38;5;220m⚡ DÉTAILS DU COMPTE CRÉÉ\033[0m                                        \033[38;5;201m║\033[0m')
+    print('\033[38;5;201m╠═════════════════════════════════════════════════════════════════╣\033[0m')
+    for k, v in ad.items():
+        if v:
+            print(f'\033[38;5;201m║\033[0m  \033[38;5;255m{k:<15}\033[0m : {v:<44} \033[38;5;201m║\033[0m')
+    print('\033[38;5;201m╚═════════════════════════════════════════════════════════════════╝\033[0m')
 " 2>/dev/null
   else
     local err
     err=$(echo "$result" | python3 -c "import json,sys; print(json.load(sys.stdin).get('error','Unknown'))" 2>/dev/null)
-    echo -e "  ${RD}[ERROR] $err${NC}"
+    echo -e "  ${C_RED}✖ [ERROR] $err${C_RESET}"
   fi
 
   wait_key
@@ -600,19 +593,19 @@ for k, v in ad.items():
 function ntw_renew_client() {
   local token="$1"
   clear
-  read -rp "  ID du client : " client_id
-  read -rp "  Jours de renouvellement : " days
+  read -rp "  ► ID du client : " client_id
+  read -rp "  ► Jours de renouvellement : " days
 
   local result
   result=$(api_call "POST" "/clients/$client_id/renew" "$token" "{\"days\":$days}")
   if echo "$result" | grep -q '"expires_at"'; then
     local expires
     expires=$(echo "$result" | python3 -c "import json,sys; print(json.load(sys.stdin).get('expires_at',''))" 2>/dev/null)
-    echo -e "  ${GR}[OK] Renouvelé! Nouvelle expiration: $expires${NC}"
+    echo -e "  ${C_GREEN}⚡ [OK] Renouvelé! Nouvelle expiration: $expires${C_RESET}"
   else
     local err
     err=$(echo "$result" | python3 -c "import json,sys; print(json.load(sys.stdin).get('error',''))" 2>/dev/null)
-    echo -e "  ${RD}[ERROR] $err${NC}"
+    echo -e "  ${C_RED}✖ [ERROR] $err${C_RESET}"
   fi
   wait_key
   ntw_manager_client
@@ -621,15 +614,15 @@ function ntw_renew_client() {
 function ntw_suspend_client() {
   local token="$1"
   clear
-  read -rp "  ID du client : " client_id
+  read -rp "  ► ID du client : " client_id
   local result
   result=$(api_call "POST" "/clients/$client_id/suspend" "$token")
   if echo "$result" | grep -q '"message"'; then
-    echo -e "  ${GR}[OK] Client suspendu.${NC}"
+    echo -e "  ${C_GREEN}⚡ [OK] Client suspendu.${C_RESET}"
   else
     local err
     err=$(echo "$result" | python3 -c "import json,sys; print(json.load(sys.stdin).get('error',''))" 2>/dev/null)
-    echo -e "  ${RD}[ERROR] $err${NC}"
+    echo -e "  ${C_RED}✖ [ERROR] $err${C_RESET}"
   fi
   wait_key
   ntw_manager_client
@@ -638,10 +631,10 @@ function ntw_suspend_client() {
 function ntw_delete_client() {
   local token="$1"
   clear
-  read -rp "  ID du client à supprimer : " client_id
-  read -rp "  Confirmer suppression? (oui/non) : " confirm
+  read -rp "  ► ID du client à supprimer : " client_id
+  read -rp "  ► Confirmer suppression? (oui/non) : " confirm
   if [[ "$confirm" != "oui" ]]; then
-    echo -e "  ${YL}Annulé.${NC}"
+    echo -e "  ${C_GOLD}[!] Annulé.${C_RESET}"
     wait_key
     ntw_manager_client
     return
@@ -649,11 +642,11 @@ function ntw_delete_client() {
   local result
   result=$(api_call "DELETE" "/clients/$client_id" "$token")
   if echo "$result" | grep -q '"message"'; then
-    echo -e "  ${GR}[OK] Client supprimé.${NC}"
+    echo -e "  ${C_GREEN}⚡ [OK] Client supprimé.${C_RESET}"
   else
     local err
     err=$(echo "$result" | python3 -c "import json,sys; print(json.load(sys.stdin).get('error',''))" 2>/dev/null)
-    echo -e "  ${RD}[ERROR] $err${NC}"
+    echo -e "  ${C_RED}✖ [ERROR] $err${C_RESET}"
   fi
   wait_key
   ntw_manager_client
@@ -662,9 +655,9 @@ function ntw_delete_client() {
 # ─── MANAGER PLANS ────────────────────────────────────────────────────────────
 function ntw_manager_plans() {
   clear
-  echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-  echo -e "${LN}┃${NC} ${BG}           MANAGER PLANS / PRODUITS              ${NC} ${LN}┃${NC}"
-  echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+  echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+  echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ OFFRES & PLANS D'ABONNEMENT${C_RESET}                                   ${C_MAGENTA}║${C_RESET}"
+  echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
 
   local token
   token=$(ntw_get_token) || { nexus_web_menu; return; }
@@ -680,19 +673,22 @@ if isinstance(plans, dict) and 'error' in plans:
 elif not plans:
     print('  Aucun plan créé.')
 else:
-    print(f'  {\"Nom\":<20}  {\"Durée\":<8}  {\"Prix\":<8}  {\"Conns\":<6}  {\"Statut\"}')
-    print('  ' + '-'*60)
+    print('\033[38;5;45m───────────────────────────────────────────────────────────────────\033[0m')
+    print(f' {\"NOM\":<18} {\"DURÉE\":<10} {\"PRIX\":<10} {\"MAX CONNS\":<12} {\"STATUT\"}')
+    print('\033[38;5;45m───────────────────────────────────────────────────────────────────\033[0m')
     for p in plans:
-        print(f'  {p[\"name\"]:<20}  {str(p[\"duration_days\"]) + \"j\":<8}  \${p[\"price\"]:<7}  {p[\"max_connections\"]:<6}  {p[\"status\"]}')
+        print(f'  {p[\"name\"]:<18} {str(p[\"duration_days\"])+\"j\":<10} {\$\"+str(p[\"price\"]):<10} {p[\"max_connections\"]:<12} {p[\"status\"]}')
+    print('\033[38;5;45m───────────────────────────────────────────────────────────────────\033[0m')
 " 2>/dev/null
 
   echo ""
-  echo -e "  ${LN}[1]${NC} Créer un plan  ${LN}[0]${NC} Retour"
-  read -rp "  Choix : " opt
+  echo -e "   ${C_MAGENTA}[01]${C_RESET} CRÉER UN PLAN          ${C_GRAY}[00] RETOUR${C_RESET}"
+  echo ""
+  read -rp "  🜲 Select option : " opt
 
   case "$opt" in
-    1) ntw_create_plan "$token" ;;
-    0) nexus_web_menu ;;
+    1|01) ntw_create_plan "$token" ;;
+    0|00) nexus_web_menu ;;
     *) ntw_manager_plans ;;
   esac
 }
@@ -700,16 +696,17 @@ else:
 function ntw_create_plan() {
   local token="$1"
   clear
-  echo -e "${LN}┃${NC} ${BG}               CRÉER UN PLAN                    ${NC} ${LN}┃${NC}"
+  echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+  echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ CRÉER UN PLAN D'ABONNEMENT${C_RESET}                                     ${C_MAGENTA}║${C_RESET}"
+  echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
   echo ""
-  read -rp "  Nom du plan          : " name
-  read -rp "  Description          : " desc
-  read -rp "  Durée (jours)        : " days
-  read -rp "  Prix ($, 0=gratuit)  : " price
-  read -rp "  Protocoles (ssh,vmess,...) : " protos
-  read -rp "  Max connexions       : " conns
+  read -rp "  ► Nom du plan                : " name
+  read -rp "  ► Description                : " desc
+  read -rp "  ► Durée (jours)              : " days
+  read -rp "  ► Prix ($, 0=gratuit)        : " price
+  read -rp "  ► Protocoles (ssh,vmess,...) : " protos
+  read -rp "  ► Max connexions             : " conns
 
-  # Build protocols array
   local protos_json
   protos_json=$(python3 -c "import json; print(json.dumps([p.strip() for p in '$protos'.split(',') if p.strip()]))" 2>/dev/null || echo '["ssh"]')
 
@@ -718,11 +715,11 @@ function ntw_create_plan() {
     "{\"name\":\"$name\",\"description\":\"$desc\",\"duration_days\":$days,\"price\":${price:-0},\"protocols\":$protos_json,\"max_connections\":${conns:-1}}")
 
   if echo "$result" | grep -q '"id"'; then
-    echo -e "  ${GR}[OK] Plan '$name' créé!${NC}"
+    echo -e "  ${C_GREEN}⚡ [OK] Plan '$name' créé avec succès!${C_RESET}"
   else
     local err
     err=$(echo "$result" | python3 -c "import json,sys; print(json.load(sys.stdin).get('error',''))" 2>/dev/null)
-    echo -e "  ${RD}[ERROR] $err${NC}"
+    echo -e "  ${C_RED}✖ [ERROR] $err${C_RESET}"
   fi
 
   wait_key
@@ -732,9 +729,9 @@ function ntw_create_plan() {
 # ─── LOGS & AUDIT ─────────────────────────────────────────────────────────────
 function ntw_view_logs() {
   clear
-  echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-  echo -e "${LN}┃${NC} ${BG}               LOGS & AUDIT                     ${NC} ${LN}┃${NC}"
-  echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+  echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+  echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ JOURNAL AUDIT & LOGS SYSTEME${C_RESET}                                 ${C_MAGENTA}║${C_RESET}"
+  echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
   echo ""
 
   local token
@@ -750,13 +747,14 @@ if 'error' in data:
     print(f'  [ERROR] {data[\"error\"]}')
 else:
     logs = data.get('logs', [])
-    print(f'  Total: {data.get(\"total\", 0)} entrées — Affichage des 30 dernières')
-    print()
-    print(f'  {\"Date\":<20}  {\"Admin\":<15}  {\"Action\":<25}  {\"Cible\"}')
-    print('  ' + '-'*80)
+    print(f'  Total: {data.get(\"total\", 0)} entrées (30 plus récentes)')
+    print('\033[38;5;45m───────────────────────────────────────────────────────────────────\033[0m')
+    print(f' {\"DATE\":<18} {\"ADMIN\":<14} {\"ACTION\":<22} {\"CIBLE\"}')
+    print('\033[38;5;45m───────────────────────────────────────────────────────────────────\033[0m')
     for l in logs:
         dt = l[\"created_at\"][:19].replace(\"T\", \" \")
-        print(f'  {dt:<20}  {(l[\"admin_username\"] or \"-\"):<15}  {l[\"action\"]:<25}  {l[\"target_type\"] or \"-\"}')
+        print(f'  {dt:<18} {(l[\"admin_username\"] or \"-\"):<14} {l[\"action\"]:<22} {l[\"target_type\"] or \"-\"}')
+    print('\033[38;5;45m───────────────────────────────────────────────────────────────────\033[0m')
 " 2>/dev/null || echo "$result"
 
   wait_key
@@ -766,24 +764,30 @@ else:
 # ─── SERVICE CONTROL ─────────────────────────────────────────────────────────
 function ntw_service_control() {
   clear
-  echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-  echo -e "${LN}┃${NC} ${BG}             CONTRÔLE DU SERVICE                 ${NC} ${LN}┃${NC}"
-  echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+  local active_status
+  active_status=$(systemctl is-active $SERVICE 2>/dev/null)
+  
+  echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+  echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ CONTRÔLE DE SERVICE SYSTEMD${C_RESET}                                   ${C_MAGENTA}║${C_RESET}"
+  echo -e "${C_MAGENTA}╠═════════════════════════════════════════════════════════════════╣${C_RESET}"
+  printf "${C_MAGENTA}║${C_RESET}  ${C_WHITE}Service${C_RESET} : %-53s ${C_MAGENTA}║${C_RESET}\n" "$SERVICE"
+  printf "${C_MAGENTA}║${C_RESET}  ${C_WHITE}Status${C_RESET}  : %-53s ${C_MAGENTA}║${C_RESET}\n" "$active_status"
+  echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
   echo ""
-  echo -e "  Service : ${LN}$SERVICE${NC}"
-  echo -e "  Statut  : $(systemctl is-active $SERVICE 2>/dev/null)"
+  echo -e "   ${C_GREEN}[01]${C_RESET} DÉMARRER               ${C_GREEN}[03]${C_RESET} REDÉMARRER"
+  echo -e "   ${C_RED}[02]${C_RESET} ARRÊTER                ${C_BLUE}[04]${C_RESET} JOURNALS SYSTEMD"
   echo ""
-  echo -e "${LN}  [1]${NC} Démarrer   ${LN}[2]${NC} Arrêter   ${LN}[3]${NC} Redémarrer"
-  echo -e "${LN}  [4]${NC} Voir les logs système  ${LN}[0]${NC} Retour"
+  echo -e "   ${C_GRAY}[00] RETOUR${C_RESET}"
   echo ""
-  read -rp "  Choix : " opt
+  echo -e "${C_GRAY}───────────────────────────────────────────────────────────────────${C_RESET}"
+  read -rp "  🜲 Select option : " opt
 
   case "$opt" in
-    1) systemctl start "$SERVICE" && echo -e "  ${GR}Service démarré.${NC}" ;;
-    2) systemctl stop "$SERVICE" && echo -e "  ${YL}Service arrêté.${NC}" ;;
-    3) systemctl restart "$SERVICE" && echo -e "  ${GR}Service redémarré.${NC}" ;;
-    4) journalctl -u "$SERVICE" -n 50 --no-pager | less -F ;;
-    0) nexus_web_menu; return ;;
+    1|01) systemctl start "$SERVICE" && echo -e "  ${C_GREEN}⚡ Service démarré.${C_RESET}" ;;
+    2|02) systemctl stop "$SERVICE" && echo -e "  ${C_RED}✖ Service arrêté.${C_RESET}" ;;
+    3|03) systemctl restart "$SERVICE" && echo -e "  ${C_GREEN}⚡ Service redémarré.${C_RESET}" ;;
+    4|04) journalctl -u "$SERVICE" -n 50 --no-pager | less -F ;;
+    0|00) nexus_web_menu; return ;;
     *) ;;
   esac
 
@@ -794,29 +798,27 @@ function ntw_service_control() {
 # ─── UPDATE ──────────────────────────────────────────────────────────────────
 function ntw_update() {
   clear
-  echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-  echo -e "${LN}┃${NC} ${BG}          MISE À JOUR NEXUS TUNNEL WEB           ${NC} ${LN}┃${NC}"
-  echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+  echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+  echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_GOLD}❖ MISE À JOUR — NEXUS TUNNEL WEB${C_RESET}                                ${C_MAGENTA}║${C_RESET}"
+  echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
   echo ""
   echo -e "  Cette option télécharge la dernière version depuis GitHub"
   echo -e "  et redéploie le panel en conservant vos données (DB, config)."
-  read -rp "  Continuer? (oui/non) : " confirm
+  read -rp "  ► Continuer? (oui/non) : " confirm
 
   if [[ "$confirm" != "oui" ]]; then
-    echo -e "  ${YL}Annulé.${NC}"
+    echo -e "  ${C_GOLD}[!] Annulé.${C_RESET}"
     wait_key
     nexus_web_menu
     return
   fi
 
-  # Pour la mise à jour on clone TOUJOURS depuis GitHub afin d'avoir
-  # la vraie dernière version, pas la copie locale déjà installée.
   local tmp_src
   tmp_src="$(mktemp -d)"
 
   log_info "Téléchargement de la dernière version depuis GitHub..."
   if ! git clone --depth 1 "$NEXUS_REPO_URL" "$tmp_src" 2>&1 | tail -5; then
-    echo -e "  ${RD}[ERROR] Impossible de cloner depuis GitHub. Vérifiez votre connexion.${NC}"
+    echo -e "  ${C_RED}✖ [ERROR] Impossible de cloner depuis GitHub.${C_RESET}"
     rm -rf "$tmp_src"
     wait_key
     nexus_web_menu
@@ -825,7 +827,7 @@ function ntw_update() {
 
   local src_dir="$tmp_src/nexus-web"
   if [ ! -d "$src_dir" ] || [ ! -f "$src_dir/install.sh" ]; then
-    echo -e "  ${RD}[ERROR] Dossier nexus-web introuvable dans le dépôt cloné.${NC}"
+    echo -e "  ${C_RED}✖ [ERROR] Dossier nexus-web introuvable.${C_RESET}"
     rm -rf "$tmp_src"
     wait_key
     nexus_web_menu
@@ -835,7 +837,6 @@ function ntw_update() {
   log_info "Copie des nouveaux fichiers dans $NEXUS_WEB_DIR..."
   cp -rf "$src_dir"/. "$NEXUS_WEB_DIR/"
 
-  # Ré-application du correctif ancrage absolu PUBLIC_DIR et CORS
   log_info "Application des correctifs (PUBLIC_DIR, CORS)..."
   sed -i "s|const PUBLIC_DIR = .*|const PUBLIC_DIR = '/opt/nexus-tunnel-web/public';|g" \
       "$NEXUS_WEB_DIR/server/index.ts" 2>/dev/null || true
@@ -857,11 +858,10 @@ function ntw_update() {
   log_info "Nettoyage et redémarrage du service..."
   rm -rf "$tmp_src"
 
-  # Update the watchdog script (in case it changed)
   if [ -f "$NEXUS_WEB_DIR/install.sh" ]; then
     bash "$NEXUS_WEB_DIR/install.sh" --watchdog-only 2>/dev/null || true
   fi
-  # Ensure watchdog cron exists
+
   if [ ! -f /etc/cron.d/nexus-web-watchdog ]; then
     echo "* * * * * root /usr/local/bin/nexus-web-watchdog.sh" > /etc/cron.d/nexus-web-watchdog
     chmod 644 /etc/cron.d/nexus-web-watchdog
@@ -870,7 +870,7 @@ function ntw_update() {
   systemctl restart "$SERVICE"
   sleep 2
 
-  echo -e "  ${GR}[OK] Mise à jour terminée ! Le panel est maintenant à jour.${NC}"
+  echo -e "  ${C_GREEN}⚡ [OK] Mise à jour terminée ! Le panel est maintenant à jour.${C_RESET}"
   wait_key
   nexus_web_menu
 }
@@ -878,42 +878,43 @@ function ntw_update() {
 # ─── UNINSTALL ────────────────────────────────────────────────────────────────
 function ntw_uninstall() {
   clear
-  echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-  echo -e "${LN}┃${NC} ${BG}          DÉSINSTALLER NEXUS TUNNEL WEB          ${NC} ${LN}┃${NC}"
-  echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+  echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+  echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_RED}❖ DÉSINSTALLER NEXUS TUNNEL WEB${C_RESET}                                ${C_MAGENTA}║${C_RESET}"
+  echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
   echo ""
-  echo -e "  ${RD}ATTENTION: Cette action supprimera l'interface web.${NC}"
-  read -rp "  Confirmer la désinstallation? (oui/non) : " confirm
+  echo -e "  ${C_RED}ATTENTION: Cette action supprimera l'interface web.${C_RESET}"
+  read -rp "  ► Confirmer la désinstallation? (oui/non) : " confirm
 
   if [[ "$confirm" != "oui" ]]; then
-    echo -e "  ${YL}Annulé.${NC}"
+    echo -e "  ${C_GOLD}[!] Annulé.${C_RESET}"
     wait_key
     nexus_web_menu
     return
   fi
 
-  read -rp "  Conserver les données (DB, config)? (oui/non) : " keep_data
+  read -rp "  ► Conserver les données (DB, config)? (oui/non) : " keep_data
 
-  echo -e "  ${YL}Arrêt du service...${NC}"
+  echo -e "  ${C_GOLD}[INFO] Arrêt du service...${C_RESET}"
   systemctl stop "$SERVICE" 2>/dev/null || true
   systemctl disable "$SERVICE" 2>/dev/null || true
   rm -f "/etc/systemd/system/$SERVICE.service"
   systemctl daemon-reload
 
-  echo -e "  ${YL}Suppression des fichiers...${NC}"
+  echo -e "  ${C_GOLD}[INFO] Suppression des fichiers...${C_RESET}"
   rm -rf "$NEXUS_WEB_DIR"
 
   if [[ "$keep_data" != "oui" ]]; then
     rm -rf "$CONFIG_DIR"
-    echo -e "  ${YL}Données supprimées.${NC}"
+    echo -e "  ${C_RED}[!] Données supprimées.${C_RESET}"
   else
-    echo -e "  ${GR}Données conservées dans $CONFIG_DIR${NC}"
+    echo -e "  ${C_GREEN}⚡ Données conservées dans $CONFIG_DIR${C_RESET}"
   fi
 
-  echo -e "  ${GR}[OK] Nexus Tunnel Web désinstallé.${NC}"
+  echo -e "  ${C_GREEN}⚡ [OK] Nexus Tunnel Web désinstallé.${C_RESET}"
   wait_key
   menu
 }
 
 # ─── ENTRY POINT ─────────────────────────────────────────────────────────────
 nexus_web_menu
+

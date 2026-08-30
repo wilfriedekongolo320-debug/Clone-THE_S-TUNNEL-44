@@ -1,46 +1,89 @@
 #!/bin/bash
-# Fichier : install_bot.sh
-# Rôle : Installation automatisée du Bot Telegram Nexus Tunnel Pro
+# =============================================================================
+# install_bot.sh — Installation corrigée du Bot Telegram THE_S Tunnel Pro
+# =============================================================================
+set -euo pipefail
 
-set -e
+GREEN='\e[32m';YELLOW='\e[33m'
+CYAN='\e[36m'
+RED='\e[31m'
+NC='\e[0m'
 
-echo -e "\e[32m[+] Démarrage de l'installation du Bot Telegram Nexus Tunnel Pro...\e[0m"
+echo -e "${GREEN}[+] Installation du Bot Telegram THE_S Tunnel Pro...${NC}"
 
-# 1. Mise à jour et dépendances
-echo -e "\e[33m[*] Installation des dépendances Python et Système...\e[0m"
+# -----------------------------------------------------------------------------
+# 1. Dépendances
+# -----------------------------------------------------------------------------
+echo -e "${YELLOW}[*] Installation des dépendances...${NC}"
 apt-get update -y
-apt-get install -y git python3 python3-pip unzip zip qrencode
+apt-get install -y git python3 python3-pip unzip zip qrencode curl
 python3 -m pip install --upgrade pip
-python3 -m pip install pyTelegramBotAPI psutil qrcode pillow requests
+python3 -m pip install "pyTelegramBotAPI>=4.14.0" psutil qrcode pillow requests
 
-# 2. Création des dossiers
-echo -e "\e[33m[*] Création des dossiers du bot...\e[0m"
-mkdir -p /root/doty_bot
-mkdir -p /etc/pps_bot
+# -----------------------------------------------------------------------------
+# 2. Dossiers
+# -----------------------------------------------------------------------------
+echo -e "${YELLOW}[*] Création des dossiers...${NC}"
+mkdir -p /root/doty_bot/modules
+mkdir -p /etc/the_s_bot
+mkdir -p /etc/the_s_bot/ssh_accounts
+mkdir -p /etc/the_s_bot/xray_accounts
+mkdir -p /etc/the_s_bot/zivpn_accounts
 
-# 3. Récupération du dépôt (copie des sources)
-REPO_URL="https://github.com/wilfriedekongolo320-jpg/THE_S237-.git"
-REPO_DIR="/root/doty_bot_repo"
-if [ -d "$REPO_DIR" ]; then
-  echo "[*] Le dépôt existe déjà dans $REPO_DIR, mise à jour..."
-  cd "$REPO_DIR" && git pull --rebase || true
-else
-  git clone "$REPO_URL" "$REPO_DIR"
+# -----------------------------------------------------------------------------
+# 3. Récupération des sources (CE dépôt)
+# -----------------------------------------------------------------------------
+REPO_URL="https://github.com/thesnet320-source/THE_S-TUNNEL-PRO-.git"
+REPO_DIR="/tmp/the_s_bot_repo"
+
+echo -e "${YELLOW}[*] Clonage du dépôt...${NC}"
+rm -rf "$REPO_DIR"
+git clone --depth 1 "$REPO_URL" "$REPO_DIR"
+
+# Sources principales
+cp -r "$REPO_DIR/doty_bot_source/"* /root/doty_bot/ 2>/dev/null || true
+
+# Modules manquants : on les prend depuis nexus_core_bot (API compatible)
+if [ -d "$REPO_DIR/nexus_core_bot/modules" ]; then
+  cp -f "$REPO_DIR/nexus_core_bot/modules/"*.py /root/doty_bot/modules/
 fi
 
-# Copie des sources doty_bot_source vers /root/doty_bot
-cp -r "$REPO_DIR/doty_bot_source"/* /root/doty_bot/ || true
+# S'assurer que __init__.py existe
+touch /root/doty_bot/modules/__init__.py
+
+# Adapter les chemins de config des modules (nexus → the_s_bot)
+# Les modules originaux utilisent /etc/nexus_bot — on les patch pour ce bot
+for f in /root/doty_bot/modules/*.py; do
+  [ -f "$f" ] || continue
+  sed -i 's|/etc/nexus_bot|/etc/the_s_bot|g' "$f"
+done
+
 chown -R root:root /root/doty_bot
+find /root/doty_bot -name "*.py" -exec chmod 644 {} \;
+chmod +x /root/doty_bot/main.py 2>/dev/null || true
+chmod +x /root/doty_bot/check_telegram.py 2>/dev/null || true
 
-# 4. Configuration initiale (création de /etc/pps_bot/config.json - format attendu par main.py)
-echo -e "\e[36m========================================\e[0m"
-read -p "Entrez le Token de votre Bot Telegram : " BOT_TOKEN
-read -p "Entrez votre ID Telegram (Super Admin) : " ADMIN_ID
-read -p "Entrez le nom de marque (optionnel, appuyez sur Entrée pour 🜲THE_S) : " BRAND
-if [ -z "$BRAND" ]; then BRAND="🜲THE_S"; fi
-echo -e "\e[36m========================================\e[0m"
+# -----------------------------------------------------------------------------
+# 4. Configuration interactive
+# -----------------------------------------------------------------------------
+echo -e "${CYAN}========================================${NC}"
+read -r -p "Token du Bot Telegram : " BOT_TOKEN
+read -r -p "Ton ID Telegram (Super Admin) : " ADMIN_ID
+read -r -p "Nom de marque (Entrée = 🜲THE_S) : " BRAND
+[ -z "${BRAND:-}" ] && BRAND="🜲THE_S"
+echo -e "${CYAN}========================================${NC}"
 
-cat <<EOF > /etc/pps_bot/config.json
+if [ -z "${BOT_TOKEN}" ] || [ -z "${ADMIN_ID}" ]; then
+  echo -e "${RED}[ERROR] Token et Admin ID sont obligatoires.${NC}"
+  exit 1
+fi
+
+if ! [[ "${ADMIN_ID}" =~ ^[0-9]+$ ]]; then
+  echo -e "${RED}[ERROR] L'ID Telegram doit être un nombre.${NC}"
+  exit 1
+fi
+
+cat > /etc/the_s_bot/config.json <<EOF
 {
   "bot_token": "${BOT_TOKEN}",
   "super_admin": ${ADMIN_ID},
@@ -48,35 +91,61 @@ cat <<EOF > /etc/pps_bot/config.json
   "brand": "${BRAND}"
 }
 EOF
+chmod 600 /etc/the_s_bot/config.json
 
-chmod 600 /etc/pps_bot/config.json
+# Fichiers de persistance vides si absents
+[ -f /etc/the_s_bot/resellers.json ] || echo '{}' > /etc/the_s_bot/resellers.json
+[ -f /etc/the_s_bot/convs.json ]    || echo '{}' > /etc/the_s_bot/convs.json
+[ -f /etc/the_s_bot/visitors.json ] || echo '{}' > /etc/the_s_bot/visitors.json
+chmod 600 /etc/the_s_bot/*.json
 
-# 5. Création du service SystemD
-echo -e "\e[33m[*] Création et activation du service systemd...\e[0m"
-cat <<EOF > /etc/systemd/system/dotybot.service
+# -----------------------------------------------------------------------------
+# 5. Service systemd (chemins corrects)
+# -----------------------------------------------------------------------------
+echo -e "${YELLOW}[*] Création du service systemd...${NC}"
+cat > /etc/systemd/system/dotybot.service <<'EOF'
 [Unit]
-Description=Nexus Tunnel Pro Telegram Bot
+Description=THE_S Tunnel Pro Telegram Bot
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /root/doty_bot/doty_bot_source/main.py
+Type=simple
+ExecStart=/usr/bin/python3 /root/doty_bot/main.py
 WorkingDirectory=/root/doty_bot
 Restart=always
+RestartSec=5
 User=root
+Environment=PYTHONUNBUFFERED=1
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl enable dotybot || true
+systemctl enable dotybot
 
-# 6. Vérification du token via l'API Telegram
-echo -e "\e[33m[*] Vérification du token Telegram...\e[0m"
-python3 /root/doty_bot/doty_bot_source/check_telegram.py || true
+# -----------------------------------------------------------------------------
+# 6. Vérification du token
+# -----------------------------------------------------------------------------
+echo -e "${YELLOW}[*] Vérification du token Telegram...${NC}"
+if [ -f /root/doty_bot/check_telegram.py ]; then
+  python3 /root/doty_bot/check_telegram.py || true
+else
+  echo -e "${YELLOW}[!] check_telegram.py absent, skip.${NC}"
+fi
 
-# 7. Lancement du service
-echo -e "\e[33m[*] Démarrage du service dotybot...\e[0m"
-systemctl restart dotybot || true
+# -----------------------------------------------------------------------------
+# 7. Démarrage
+# -----------------------------------------------------------------------------
+echo -e "${YELLOW}[*] Démarrage du service...${NC}"
+systemctl restart dotybot
+sleep 2
+systemctl --no-pager status dotybot || true
 
-echo -e "\e[32m[+] Installation terminée ! Utilisez 'sudo systemctl status dotybot' et 'sudo journalctl -u dotybot -f' pour suivre les logs.\e[0m"
+echo ""
+echo -e "${GREEN}[+] Installation terminée.${NC}"
+echo -e "    Config  : /etc/the_s_bot/config.json"
+echo -e "    Sources : /root/doty_bot/"
+echo -e "    Service : systemctl status dotybot"
+echo -e "    Logs    : journalctl -u dotybot -f"
+echo ""

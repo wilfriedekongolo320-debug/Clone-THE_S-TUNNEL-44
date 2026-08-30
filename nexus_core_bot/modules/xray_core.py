@@ -6,9 +6,9 @@ import os
 import re
 
 XRAY_CONF = "/etc/xray/config.json"
-DB_DIR = "/etc/nexus_bot/xray_accounts"
+DB_DIR = "/etc/the_s_bot/xray_accounts"
 
-# Balises possibles selon les installs courantes (plus robuste)
+# Balises possibles selon les installs courantes
 MARKERS = {
     "vless": ["#vless", "#vlessws", "#vlessgrpc", "# vless"],
     "vmess": ["#vmess", "#vmessws", "#vmessgrpc", "# vmess"],
@@ -68,7 +68,7 @@ def _build_links(protocol, user, client_id, domain):
             f"trojan://{client_id}@{domain}:443?mode=gun&security=tls"
             f"&type=grpc&serviceName=trojan-grpc&sni={domain}#{user}"
         )
-    else:
+    else:  # socks
         link_tls = f"socks5://{user}:{client_id}@{domain}:1080"
         link_ntls = link_tls
         link_grpc = link_tls

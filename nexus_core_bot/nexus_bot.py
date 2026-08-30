@@ -1,5 +1,4 @@
 import telebot
-import subprocess
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import json
 import os
@@ -9,17 +8,15 @@ from modules import system_core, ssh_core, admin_core, xray_core, zivpn_core
 logging.basicConfig(level=logging.WARNING, format='%(asctime)s %(levelname)s %(message)s')
 
 CONFIG_FILE = '/etc/nexus_bot/config.json'
+
 MENU_IMAGE_URL = "https://github.com/user-attachments/assets/a6307c0b-01f0-4b96-852b-ed8907c79c62"
 
 def load_config():
-    if not os.path.exists(CONFIG_FILE):
-        return None
-    with open(CONFIG_FILE, 'r') as f:
-        return json.load(f)
+    if not os.path.exists(CONFIG_FILE): return None
+    with open(CONFIG_FILE, 'r') as f: return json.load(f)
 
 config = load_config()
-if not config:
-    exit(1)
+if not config: exit(1)
 
 bot = telebot.TeleBot(config.get('bot_token'))
 SUPER_ADMIN = int(config.get('super_admin'))
@@ -71,13 +68,8 @@ def _show_submenu(call, text, markup):
             pass
         bot.send_message(call.message.chat.id, text, parse_mode="HTML", reply_markup=markup)
     else:
-        bot.edit_message_text(
-            text,
-            chat_id=call.message.chat.id,
-            message_id=call.message.message_id,
-            parse_mode="HTML",
-            reply_markup=markup
-        )
+        bot.edit_message_text(text, chat_id=call.message.chat.id, message_id=call.message.message_id,
+                              parse_mode="HTML", reply_markup=markup)
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
@@ -87,7 +79,7 @@ def send_welcome(message):
     bot.send_photo(
         message.chat.id,
         MENU_IMAGE_URL,
-        caption="<b>🟢 🜲THE_S TUNNEL PRO - C2 SERVER</b>\nSélectionnez un module :",
+        caption="<b>🟢 THES TUNNEL PRO - C2 SERVER</b>\nSélectionnez un module :",
         parse_mode="HTML",
         reply_markup=main_menu_keyboard()
     )
@@ -95,8 +87,7 @@ def send_welcome(message):
 # --- RETOUR À L'ACCUEIL ---
 @bot.callback_query_handler(func=lambda call: call.data == "action_home")
 def home_callback(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     try:
         bot.delete_message(call.message.chat.id, call.message.message_id)
     except Exception:
@@ -104,7 +95,7 @@ def home_callback(call):
     bot.send_photo(
         call.message.chat.id,
         MENU_IMAGE_URL,
-        caption="<b>🟢 🜲THE_S TUNNEL PRO - C2 SERVER</b>\nSélectionnez un module :",
+        caption="<b>🟢 THES TUNNEL PRO - C2 SERVER</b>\nSélectionnez un module :",
         parse_mode="HTML",
         reply_markup=main_menu_keyboard()
     )
@@ -114,8 +105,7 @@ def home_callback(call):
     "menu_ssh", "menu_vmess", "menu_vless", "menu_trojan", "menu_socks", "menu_zivpn"
 ))
 def protocol_submenu(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     proto = call.data.split("_", 1)[1]
     _show_submenu(call, f"<b>Module {proto.upper()}</b>\nChoisissez une action :", protocol_menu_keyboard(proto))
 
@@ -124,8 +114,7 @@ def protocol_submenu(call):
 # ═══════════════════════════════════════════════════════════
 @bot.callback_query_handler(func=lambda call: call.data == "add_ssh")
 def add_ssh_start(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     bot.edit_message_text("⚙️ Module SSH — Création", chat_id=call.message.chat.id, message_id=call.message.message_id)
     msg = bot.send_message(call.message.chat.id, "👤 <b>Étape 1/3</b>\nEntrez le nom d'utilisateur SSH :", parse_mode="HTML")
     bot.register_next_step_handler(msg, _ssh_get_user, call.from_user.id)
@@ -152,8 +141,7 @@ def _ssh_get_days(message, user, password, creator_id):
 # SSH — RENOUVELLEMENT
 @bot.callback_query_handler(func=lambda call: call.data == "renew_ssh")
 def renew_ssh_start(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     bot.edit_message_text("🔄 Module SSH — Renouvellement", chat_id=call.message.chat.id, message_id=call.message.message_id)
     msg = bot.send_message(call.message.chat.id, "👤 Entrez le nom d'utilisateur SSH à renouveler :")
     bot.register_next_step_handler(msg, _ssh_renew_get_days)
@@ -174,8 +162,7 @@ def _ssh_renew_execute(message, user):
 # SSH — SUPPRESSION
 @bot.callback_query_handler(func=lambda call: call.data == "del_ssh")
 def del_ssh_start(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     bot.edit_message_text("🗑️ Module SSH — Suppression", chat_id=call.message.chat.id, message_id=call.message.message_id)
     msg = bot.send_message(call.message.chat.id, "👤 Entrez le nom d'utilisateur SSH à supprimer :")
     bot.register_next_step_handler(msg, _ssh_del_execute)
@@ -188,9 +175,8 @@ def _ssh_del_execute(message):
 # SSH — VERROUILLAGE / DÉVERROUILLAGE
 @bot.callback_query_handler(func=lambda call: call.data in ("lock_ssh", "unlock_ssh"))
 def lock_unlock_ssh_start(call):
-    if not is_admin(call.from_user.id):
-        return
-    action = call.data
+    if not is_admin(call.from_user.id): return
+    action = call.data  # "lock_ssh" or "unlock_ssh"
     label = "verrouiller" if action == "lock_ssh" else "déverrouiller"
     bot.edit_message_text(f"🔒 SSH — {label.capitalize()}", chat_id=call.message.chat.id, message_id=call.message.message_id)
     msg = bot.send_message(call.message.chat.id, f"👤 Entrez le nom d'utilisateur SSH à {label} :")
@@ -207,8 +193,7 @@ def _ssh_lock_execute(message, action):
 # SSH — LISTE
 @bot.callback_query_handler(func=lambda call: call.data == "list_ssh")
 def handle_list_ssh(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     users = ssh_core.get_ssh_usernames()
     markup = InlineKeyboardMarkup(row_width=1)
     if users:
@@ -222,8 +207,7 @@ def handle_list_ssh(call):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("view_ssh_"))
 def view_ssh_account(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     user = call.data[len("view_ssh_"):]
     ok, details = ssh_core.get_ssh_account_details(user)
     markup = InlineKeyboardMarkup(row_width=1)
@@ -238,8 +222,7 @@ def view_ssh_account(call):
 # ═══════════════════════════════════════════════════════════
 @bot.callback_query_handler(func=lambda call: call.data in ("add_vless", "add_vmess", "add_trojan", "add_socks"))
 def add_xray_start(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     proto = call.data.split("_", 1)[1]
     bot.edit_message_text(f"⚙️ Module {proto.upper()} — Création", chat_id=call.message.chat.id, message_id=call.message.message_id)
     msg = bot.send_message(call.message.chat.id, f"👤 <b>Étape 1/2</b>\nEntrez le nom d'utilisateur {proto.upper()} :", parse_mode="HTML")
@@ -262,8 +245,7 @@ def _xray_get_days(message, user, proto, creator_id):
 # XRAY — RENOUVELLEMENT
 @bot.callback_query_handler(func=lambda call: call.data in ("renew_vless", "renew_vmess", "renew_trojan", "renew_socks"))
 def renew_xray_start(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     proto = call.data.split("_", 1)[1]
     bot.edit_message_text(f"🔄 {proto.upper()} — Renouvellement", chat_id=call.message.chat.id, message_id=call.message.message_id)
     msg = bot.send_message(call.message.chat.id, f"👤 Entrez le nom d'utilisateur {proto.upper()} à renouveler :")
@@ -285,8 +267,7 @@ def _xray_renew_execute(message, proto, user):
 # XRAY — SUPPRESSION
 @bot.callback_query_handler(func=lambda call: call.data in ("del_vless", "del_vmess", "del_trojan", "del_socks"))
 def del_xray_start(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     proto = call.data.split("_", 1)[1]
     bot.edit_message_text(f"🗑️ {proto.upper()} — Suppression", chat_id=call.message.chat.id, message_id=call.message.message_id)
     msg = bot.send_message(call.message.chat.id, f"👤 Entrez le nom d'utilisateur {proto.upper()} à supprimer :")
@@ -300,8 +281,7 @@ def _xray_del_execute(message, proto):
 # XRAY — LISTE
 @bot.callback_query_handler(func=lambda call: call.data in ("list_vless", "list_vmess", "list_trojan", "list_socks"))
 def handle_list_xray(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     proto = call.data.split("_", 1)[1]
     users = xray_core.get_xray_usernames(proto)
     markup = InlineKeyboardMarkup(row_width=1)
@@ -314,22 +294,16 @@ def handle_list_xray(call):
     markup.add(InlineKeyboardButton("🔙 Retour Accueil", callback_data="action_home"))
     _show_submenu(call, text, markup)
 
-@bot.callback_query_handler(func=lambda call: (
-    call.data.startswith("view_vless_") or
-    call.data.startswith("view_vmess_") or
-    call.data.startswith("view_trojan_") or
-    call.data.startswith("view_socks_")
-))
+@bot.callback_query_handler(func=lambda call: call.data.startswith("view_vless_") or call.data.startswith("view_vmess_") or call.data.startswith("view_trojan_") or call.data.startswith("view_socks_"))
 def view_xray_account(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     parts = call.data.split("_", 2)
     proto = parts[1]
     user = parts[2]
     ok, details = xray_core.get_xray_account_details(proto, user)
     markup = InlineKeyboardMarkup(row_width=1)
     markup.add(
-        InlineKeyboardButton("🔙 Retour Liste", callback_data=f"list_{proto}"),
+        InlineKeyboardButton(f"🔙 Retour Liste", callback_data=f"list_{proto}"),
         InlineKeyboardButton("🏠 Retour Accueil", callback_data="action_home")
     )
     _show_submenu(call, details, markup)
@@ -339,8 +313,7 @@ def view_xray_account(call):
 # ═══════════════════════════════════════════════════════════
 @bot.callback_query_handler(func=lambda call: call.data == "add_zivpn")
 def add_zivpn_start(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     bot.edit_message_text("⚙️ Module ZIVPN — Création", chat_id=call.message.chat.id, message_id=call.message.message_id)
     msg = bot.send_message(call.message.chat.id, "👤 <b>Étape 1/3</b>\nEntrez le nom d'utilisateur ZIVPN :", parse_mode="HTML")
     bot.register_next_step_handler(msg, _zivpn_get_user, call.from_user.id)
@@ -367,8 +340,7 @@ def _zivpn_get_days(message, user, password, creator_id):
 # ZIVPN — RENOUVELLEMENT
 @bot.callback_query_handler(func=lambda call: call.data == "renew_zivpn")
 def renew_zivpn_start(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     bot.edit_message_text("🔄 ZIVPN — Renouvellement", chat_id=call.message.chat.id, message_id=call.message.message_id)
     msg = bot.send_message(call.message.chat.id, "👤 Entrez le nom d'utilisateur ZIVPN à renouveler :")
     bot.register_next_step_handler(msg, _zivpn_renew_get_days)
@@ -389,8 +361,7 @@ def _zivpn_renew_execute(message, user):
 # ZIVPN — SUPPRESSION
 @bot.callback_query_handler(func=lambda call: call.data == "del_zivpn")
 def del_zivpn_start(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     bot.edit_message_text("🗑️ ZIVPN — Suppression", chat_id=call.message.chat.id, message_id=call.message.message_id)
     msg = bot.send_message(call.message.chat.id, "👤 Entrez le nom d'utilisateur ZIVPN à supprimer :")
     bot.register_next_step_handler(msg, _zivpn_del_execute)
@@ -403,8 +374,7 @@ def _zivpn_del_execute(message):
 # ZIVPN — LISTE
 @bot.callback_query_handler(func=lambda call: call.data == "list_zivpn")
 def handle_list_zivpn(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     users = zivpn_core.get_zivpn_usernames()
     markup = InlineKeyboardMarkup(row_width=1)
     if users:
@@ -418,8 +388,7 @@ def handle_list_zivpn(call):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("view_zivpn_"))
 def view_zivpn_account(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     user = call.data[len("view_zivpn_"):]
     ok, details = zivpn_core.get_zivpn_account_details(user)
     markup = InlineKeyboardMarkup(row_width=1)
@@ -434,26 +403,24 @@ def view_zivpn_account(call):
 # ═══════════════════════════════════════════════════════════
 @bot.callback_query_handler(func=lambda call: call.data == "menu_status")
 def handle_status(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     status_text = system_core.get_vps_status()
     markup = InlineKeyboardMarkup().add(InlineKeyboardButton("🔙 Retour Accueil", callback_data="action_home"))
     _show_submenu(call, status_text, markup)
 
 @bot.callback_query_handler(func=lambda call: call.data == "menu_log")
 def handle_clean_logs(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     result = system_core.clean_system_logs()
     markup = InlineKeyboardMarkup().add(InlineKeyboardButton("🔙 Retour Accueil", callback_data="action_home"))
     _show_submenu(call, result, markup)
 
 @bot.callback_query_handler(func=lambda call: call.data == "action_reboot")
 def handle_reboot(call):
-    if not admin_core.is_super_admin(call.from_user.id):
-        return
+    if not admin_core.is_super_admin(call.from_user.id): return
     bot.answer_callback_query(call.id, "♻️ Reboot en cours...")
     bot.send_message(call.message.chat.id, "♻️ <b>Reboot VPS lancé.</b>", parse_mode="HTML")
+    import subprocess
     subprocess.run("reboot", shell=True)
 
 # ═══════════════════════════════════════════════════════════
@@ -461,8 +428,7 @@ def handle_reboot(call):
 # ═══════════════════════════════════════════════════════════
 @bot.callback_query_handler(func=lambda call: call.data == "menu_admins")
 def handle_menu_admins(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     is_super = admin_core.is_super_admin(call.from_user.id)
     markup = InlineKeyboardMarkup(row_width=1)
     markup.add(
@@ -480,15 +446,13 @@ def handle_menu_admins(call):
 
 @bot.callback_query_handler(func=lambda call: call.data == "list_admins")
 def handle_list_admins(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     markup = InlineKeyboardMarkup().add(InlineKeyboardButton("🔙 Retour Admins", callback_data="menu_admins"))
     _show_submenu(call, admin_core.list_admins(), markup)
 
 @bot.callback_query_handler(func=lambda call: call.data == "req_add_admin")
 def req_add_admin(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     msg = bot.send_message(call.message.chat.id, "👤 Entrez l'ID Telegram du nouvel administrateur :")
     bot.register_next_step_handler(msg, _process_add_admin, call.from_user.id)
 
@@ -513,14 +477,12 @@ def _process_add_admin(message, requester_id):
         bot.send_message(
             super_admin_id,
             f"⚠️ <b>REQUÊTE ADMIN</b>\n\nL'admin <code>{requester_id}</code> souhaite ajouter <code>{target_id}</code>.",
-            parse_mode="HTML",
-            reply_markup=markup
+            parse_mode="HTML", reply_markup=markup
         )
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("adm:approve:") or call.data.startswith("adm:reject:"))
 def handle_admin_approval(call):
-    if not admin_core.is_super_admin(call.from_user.id):
-        return
+    if not admin_core.is_super_admin(call.from_user.id): return
     parts = call.data.split(":")
     action, target_id, requester_id = parts[1], parts[2], parts[3]
 
@@ -542,8 +504,7 @@ def handle_admin_approval(call):
 
 @bot.callback_query_handler(func=lambda call: call.data == "req_del_admin")
 def req_del_admin(call):
-    if not is_admin(call.from_user.id):
-        return
+    if not is_admin(call.from_user.id): return
     msg = bot.send_message(call.message.chat.id, "👤 Entrez l'ID Telegram de l'administrateur à révoquer :")
     bot.register_next_step_handler(msg, _process_del_admin, call.from_user.id)
 
@@ -568,8 +529,7 @@ def _process_del_admin(message, requester_id):
         bot.send_message(
             super_admin_id,
             f"⚠️ <b>DEMANDE RÉVOCATION ADMIN</b>\n\nL'admin <code>{requester_id}</code> demande la révocation de <code>{target_id}</code>.",
-            parse_mode="HTML",
-            reply_markup=markup
+            parse_mode="HTML", reply_markup=markup
         )
 
 @bot.callback_query_handler(func=lambda call: call.data == "req_promote_admin")
@@ -591,8 +551,7 @@ def _process_promote_admin_to_supreme(message):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("adm:revoke:") or call.data.startswith("adm:cancel:"))
 def handle_revoke_approval(call):
-    if not admin_core.is_super_admin(call.from_user.id):
-        return
+    if not admin_core.is_super_admin(call.from_user.id): return
     parts = call.data.split(":")
     action, target_id, requester_id = parts[1], parts[2], parts[3]
 

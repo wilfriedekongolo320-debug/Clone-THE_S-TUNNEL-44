@@ -79,7 +79,7 @@ def send_welcome(message):
     bot.send_photo(
         message.chat.id,
         MENU_IMAGE_URL,
-        caption="<b>🜲THE_S PRO TUNNEL</b>\nSélectionnez un module :",
+        caption="<b>🟢 🜲THE_S TUNNEL PRO - C2 SERVER</b>\nSélectionnez un module :",
         parse_mode="HTML",
         reply_markup=main_menu_keyboard()
     )
@@ -95,7 +95,7 @@ def home_callback(call):
     bot.send_photo(
         call.message.chat.id,
         MENU_IMAGE_URL,
-        caption="<b>🜲THE_S PRO TUNNEL</b>\nSélectionnez un module :",
+        caption="<b>🟢 🜲THE_S TUNNEL PRO - C2 SERVER</b>\nSélectionnez un module :",
         parse_mode="HTML",
         reply_markup=main_menu_keyboard()
     )

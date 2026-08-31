@@ -107,18 +107,18 @@ echo -e "${C_RESET}"
 # ==============================================================================
 #  2. MATRICE SYSTEME & SERVICES
 # ==============================================================================
-echo -e "${C_MAGENTA}╔══════════════════════════════════════════════════════════════╗${C_RESET}"
+echo -e "${C_MAGENTA}╔══════════════════════════════════════════════════════════╗${C_RESET}"
 echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ CYBER-MATRIX SYSTEM INFOS${C_RESET}                               ${C_MAGENTA}║${C_RESET}"
-echo -e "${C_MAGENTA}╠══════════════════════════════════════════════════════════════╣${C_RESET}"
+echo -e "${C_MAGENTA}╠══════════════════════════════════════════════════════════╣${C_RESET}"
 printf "${C_MAGENTA}║${C_RESET}  ${C_WHITE}OS${C_RESET}       : %-18s  ${C_WHITE}UPTIME${C_RESET} : %-16s ${C_MAGENTA}║${C_RESET}\n" "$OS $VER" "${uptime:-N/A}"
 printf "${C_MAGENTA}║${C_RESET}  ${C_WHITE}CPU${C_RESET}      : [${C_CYAN}%s${C_RESET}] %-3d%%    ${C_WHITE}RAM${C_RESET}    : [${C_CYAN}%s${C_RESET}] %-3d%%    ${C_MAGENTA}║${C_RESET}\n" "$CPU_BAR" "${CPU_USAGE:-0}" "$RAM_BAR" "${RAM_USAGE:-0}"
 printf "${C_MAGENTA}║${C_RESET}  ${C_WHITE}IPv4${C_RESET}     : %-18s  ${C_WHITE}DOMAIN${C_RESET} : %-16s ${C_MAGENTA}║${C_RESET}\n" "${IPV4:-N/A}" "${domain:-N/A}"
 if [ -n "$IPV6" ]; then
 printf "${C_MAGENTA}║${C_RESET}  ${C_WHITE}IPv6${C_RESET}     : %-47s ${C_MAGENTA}║${C_RESET}\n" "$IPV6"
 fi
-echo -e "${C_MAGENTA}╠═══════════════════════════════════════════════════════════════╣${C_RESET}"
+echo -e "${C_MAGENTA}╠══════════════════════════════════════════════════════════╣${C_RESET}"
 printf "${C_MAGENTA}║${C_RESET}  ${C_BOLD}${C_RESET}  NGINX [%b]   XRAY [%b]   WS [%b]   ${C_MAGENTA}║${C_RESET}\n" "$status_nginx" "$status_xray" "$status_ws"
-echo -e "${C_MAGENTA}╚═══════════════════════════════════════════════════════════════╝${C_RESET}"
+echo -e "${C_MAGENTA}╚══════════════════════════════════════════════════════════╝${C_RESET}"
 echo ""
 
 # ==============================================================================
@@ -135,7 +135,7 @@ echo -e "   ${C_BLUE}[07]${C_RESET} DNS MANAGER               ${C_BLUE}[12]${C_R
 echo -e "   ${C_BLUE}[08]${C_RESET} DOMAIN MANAGER            ${C_BLUE}[13]${C_RESET} PURGE SYSTEM LOGS"
 echo -e "   ${C_BLUE}[09]${C_RESET} IPv6 UTILS                ${C_BLUE}[14]${C_RESET} TELEGRAM BOT PANEL"
 echo -e "   ${C_BLUE}[10]${C_RESET} SYSTEM MONITOR            ${C_BLUE}[16]${C_RESET} FAST DNS SUITE"
-echo -e "   ${C_BLUE}[11]${C_RESET} NETGUARD FIREWALL         ${C_RED}[15]${C_RESET} UNINSTALL ENGINE"
+echo -e "   ${C_BLUE}[11]${C_RESET} NETGUARD FIREWALL         ${C_RED}[15]${C_RESET} DÉSINSTALLATION"
 echo -e "   ${C_GRAY}[00] EXIT SESSION${C_RESET}              ${C_RED}[88]${C_RESET} REBOOT SERVER"
 echo ""
 
@@ -144,9 +144,9 @@ echo -e "   ${C_GOLD}[18]${C_RESET} THE_S WEB CONTROL PANEL"
 echo ""
 
 if [ "$UPDATE_AVAILABLE" -eq 1 ]; then
-    echo -e "${C_RED}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+    echo -e "${C_RED}╔═══════════════════════════════════════════════════════════╗${C_RESET}"
     echo -e "${C_RED}║${C_RESET} ${C_BOLD}[99] NEW UPDATE AVAILABLE : v$LATEST_VERSION${C_RESET}"
-    echo -e "${C_RED}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
+    echo -e "${C_RED}╚═══════════════════════════════════════════════════════════╝${C_RESET}"
     echo ""
 fi
 

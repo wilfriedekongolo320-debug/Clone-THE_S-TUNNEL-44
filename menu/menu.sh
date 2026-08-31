@@ -117,7 +117,7 @@ if [ -n "$IPV6" ]; then
 printf "${C_MAGENTA}║${C_RESET}  ${C_WHITE}IPv6${C_RESET}     : %-47s ${C_MAGENTA}║${C_RESET}\n" "$IPV6"
 fi
 echo -e "${C_MAGENTA}╠═══════════════════════════════════════════════════════════════╣${C_RESET}"
-printf "${C_MAGENTA}║${C_RESET}  ${C_BOLD}SERVICES:${C_RESET}  NGINX [%b]   XRAY [%b]   WS [%b]   ${C_MAGENTA}║${C_RESET}\n" "$status_nginx" "$status_xray" "$status_ws"
+printf "${C_MAGENTA}║${C_RESET}  ${C_BOLD}${C_RESET}  NGINX [%b]   XRAY [%b]   WS [%b]   ${C_MAGENTA}║${C_RESET}\n" "$status_nginx" "$status_xray" "$status_ws"
 echo -e "${C_MAGENTA}╚═══════════════════════════════════════════════════════════════╝${C_RESET}"
 echo ""
 

@@ -33,7 +33,7 @@ bot_fixes/
 │       ├── system_core.py
 │       ├── admin_core.py
 │       ├── ssh_core.py
-│       ├── xray_core.py           ← injection robuste + chemins /etc/the_s_bot
+│       ├── xray_core.py           ← injection robuste + chemins /etc/nexus_bot
 │       └── zivpn_core.py
 └── nexus_core_bot/
     ├── requirements.txt

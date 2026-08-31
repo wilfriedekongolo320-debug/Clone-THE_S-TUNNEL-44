@@ -1,7 +1,7 @@
 #!/bin/bash
 
 MYIP=$(curl -sS ipv4.icanhazip.com)
-readonly SERVER_HOST="https://raw.githubusercontent.com/RootNexTPro/nexTPro-ScriptAll/main"
+readonly SERVER_HOST="https://github.com/thesnet320-source/THE_S-TUNNEL-PRO-.git"
 clear
 
 # ==============================================================================

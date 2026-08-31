@@ -1,43 +1,30 @@
 clear
-export LN='\033[38;5;51m'
-export MG='\033[38;5;201m'
-export YL='\033[38;5;226m'
-export GR='\033[38;5;46m'
-export RD='\033[38;5;196m'
-export BG='\033[45m'
-export NC='\033[0m'
-
-echo -e "\( {MG}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓ \){NC}"
-echo -e "\( {MG}┃ \){NC}${YL}           ◆ CYBER-MATRIX SYSTEM INIT            \( {NC} \){MG}┃${NC}"
-echo -e "\( {MG}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ \){NC}"
-echo
-echo -e "  \( {YL}Please Wait ... Installing required packages \){NC}"
-
+export LN='[34m'
+export BG='[44m'
+export NC='[0m'
+export GR='[32m'
+export RD='[31m'
+echo "Please Wait ... Installing required packages"
 REQUIRED_PACKAGES=(
 curl wget dnsutils git screen whois pwgen python jq fail2ban sudo
 gnutls-bin mlocate dh-make libaudit-dev build-essential dos2unix debconf-utils
 )
 for package in "${REQUIRED_PACKAGES[@]}"; do
-if ! dpkg-query -W --showformat='${Status}\n' "$package" | grep -q "install ok installed"; then
+if ! dpkg-query -W --showformat='${Status}
+' "$package" | grep -q "install ok installed"; then
 apt-get -qq install "$package" -y &>/dev/null
 fi
 done
-
 clear
-echo -e "\( {MG}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓ \){NC}"
-echo -e "\( {MG}┃ \){NC}${YL}              ◆ INSTALLING GOLANG                \( {NC} \){MG}┃${NC}"
-echo -e "\( {MG}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ \){NC}"
-echo
-
+echo "Installing Go (golang)..."
 rm -fr /usr/bin/go
 wget -q https://go.dev/dl/go1.22.0.linux-amd64.tar.gz
 sudo tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz
 rm -f /root/go1.22.0.linux-amd64.tar.gz
 echo 'export PATH="/usr/local/go/bin:$PATH:/rere"' > /root/.bashrc
-cd \~ || exit
+cd ~ || exit
 source .bashrc
 go version
-
 install_slowdns() {
 cd /root || exit
 rm -rf /etc/slowdns
@@ -53,15 +40,15 @@ chmod +x /etc/slowdns/dns-server
 -privkey-file /etc/slowdns/server.key \
 -pubkey-file /etc/slowdns/server.pub
 clear
-echo -e "\( {MG}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓ \){NC}"
-echo -e "\( {MG}┃ \){NC}${YL}               ◆ DOMAIN PANEL                    \( {NC} \){MG}┃${NC}"
-echo -e "\( {MG}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ \){NC}"
-echo -e "\( {LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━● \){NC}"
+echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
+echo -e "${LN}┃${NC} ${BG}                 DOMAIN PANEL                   ${NC} ${LN}┃${NC}"
+echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+echo -e "${LN}●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━●${NC}"
 echo
 while true; do
 read -rp "  NS Domain : " -e Nameserver
 if [[ -z "$Nameserver" ]]; then
-echo -e "\( {RD}NS Domain cannot be empty. Please enter a value. \){NC}"
+echo -e "${RED}NS Domain cannot be empty. Please enter a value.${NC}"
 else
 break
 fi
@@ -92,7 +79,6 @@ systemctl start dnstt
 sed -i 's/#AllowTcpForwarding yes/AllowTcpForwarding yes/' /etc/ssh/sshd_config
 systemctl restart ssh
 }
-
 install_firewall() {
 local interface
 interface=$(ip route get 8.8.8.8 | awk '/dev/ {print $5}')
@@ -103,11 +89,8 @@ iptables-restore < /etc/iptables.up.rules
 netfilter-persistent save
 netfilter-persistent reload
 }
-
 install_slowdns
 install_firewall
 echo ""
 rm -rf /root/go /root/dnstt
-echo -e "\( {MG}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓ \){NC}"
-echo -e "\( {MG}┃ \){NC}${GR}   SlowDNS Autoscript installation completed!   \( {NC} \){MG}┃${NC}"
-echo -e "\( {MG}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛ \){NC}"
+echo " SlowDNS Autoscript installation completed!"

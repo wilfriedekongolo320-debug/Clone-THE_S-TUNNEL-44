@@ -3,7 +3,7 @@
 # Script de configuration de la bannière SSH depuis le dépôt THE_S237-
 # Cette bannière s'affiche lors de la connexion SSH/SlowDNS
 
-SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-jpg/THE_S237-/main"
+SERVER_HOST="https://github.com/thesnet320-source/THE_S-TUNNEL-PRO-.git/main"
 BANNER_FILE="/etc/ssh/banner.issue.net"
 
 echo "[*] Téléchargement de la bannière SSH depuis le dépôt officiel..."

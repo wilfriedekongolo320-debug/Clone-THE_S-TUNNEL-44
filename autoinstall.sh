@@ -23,7 +23,7 @@ sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1
 sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1
 
 # 3. Téléchargement du Lanceur Principal (MODIFIÉ - POINTE VERS VOTRE DÉPÔT PRINCIPAL)
-SERVER_HOST="https://raw.githubusercontent.com/thesnet320-source/THE_S-TUNNEL-PRO-/main"
+SERVER_HOST="https://github.com/thesnet320-ctr/THE_S237-.git"
 echo "[+] Connexion au dépôt autonome Nexus..."
 wget -qO /root/nexus.sh "$SERVER_HOST/nexus.sh"
 

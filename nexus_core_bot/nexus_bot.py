@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.WARNING, format='%(asctime)s %(levelname)s %(m
 
 CONFIG_FILE = '/etc/nexus_bot/config.json'
 
-MENU_IMAGE_URL = "https://github.com/user-attachments/assets/baf681b1-820a-428d-85cf-703c25ff498b"
+MENU_IMAGE_URL = "https://github.com/user-attachments/assetsa6307c0b-01f0-4b96-852b-ed8907c79c62"
 
 def load_config():
     if not os.path.exists(CONFIG_FILE): return None
@@ -79,7 +79,7 @@ def send_welcome(message):
     bot.send_photo(
         message.chat.id,
         MENU_IMAGE_URL,
-        caption="<b>🟢 NEXUS TUNNEL PRO - C2 SERVER</b>\nSélectionnez un module :",
+        caption="<b>🟢 THE_S TUNNEL PRO - C2 SERVER</b>\nSélectionnez un module :",
         parse_mode="HTML",
         reply_markup=main_menu_keyboard()
     )
@@ -95,7 +95,7 @@ def home_callback(call):
     bot.send_photo(
         call.message.chat.id,
         MENU_IMAGE_URL,
-        caption="<b>🟢 NEXUS TUNNEL PRO - C2 SERVER</b>\nSélectionnez un module :",
+        caption="<b>🟢 THE_S TUNNEL PRO - C2 SERVER</b>\nSélectionnez un module :",
         parse_mode="HTML",
         reply_markup=main_menu_keyboard()
     )

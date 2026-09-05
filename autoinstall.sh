@@ -22,17 +22,12 @@ echo "precedence ::ffff:0:0/96  100" >> /etc/gai.conf
 sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1
 sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1
 
-# 3. Désactivation SSH/SFTP pendant l'installation
-echo "[+] Désactivation SSH/SFTP pendant l'installation..."
-systemctl stop ssh 2>/dev/null
-systemctl disable ssh 2>/dev/null
-
-# 4. Téléchargement du Lanceur Principal (MODIFIÉ - POINTE VERS VOTRE DÉPÔT PRINCIPAL)
+# 3. Téléchargement du Lanceur Principal (MODIFIÉ - POINTE VERS VOTRE DÉPÔT PRINCIPAL)
 SERVER_HOST="https://raw.githubusercontent.com/thesnet320-source/THE_S-TUNNEL-PRO-/main"
 echo "[+] Connexion au dépôt autonome Nexus..."
 wget -qO /root/nexus.sh "$SERVER_HOST/nexus.sh"
 
-# 5. Exécution Sécurisée
+# 4. Exécution Sécurisée
 if [ -f /root/nexus.sh ]; then
     echo "[+] Fichier noyau intercepté avec succès. Lancement..."
     chmod +x /root/nexus.sh

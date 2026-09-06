@@ -23,9 +23,15 @@ sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1
 sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1
 
 # 3. Téléchargement du Lanceur Principal (MODIFIÉ - POINTE VERS VOTRE DÉPÔT PRINCIPAL)
-SERVER_HOST="https://github.com/thesnet320-ctr/THE_S237-.git"
+# Point directement vers le contenu brut (raw) de ce dépôt
+SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
 echo "[+] Connexion au dépôt autonome Nexus..."
-wget -qO /root/nexus.sh "$SERVER_HOST/nexus.sh"
+
+# Télécharger nexus.sh depuis le dépôt raw et vérifier la réussite
+if ! wget -qO /root/nexus.sh "${SERVER_HOST}/nexus.sh"; then
+    echo "[-] ERREUR FATALE: Impossible de télécharger nexus.sh depuis ${SERVER_HOST}"
+    exit 1
+fi
 
 # 4. Exécution Sécurisée
 if [ -f /root/nexus.sh ]; then

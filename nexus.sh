@@ -10,10 +10,27 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# --- DÉSACTIVATION SSH TEMPORAIRE ---
-echo "[*] Désactivation temporaire de SSH/SFTP pour l'installation..."
-systemctl stop ssh 2>/dev/null
-systemctl disable ssh 2>/dev/null
+# Capture initial SSH state so we can restore it on exit
+SSH_WAS_ACTIVE=0
+SSH_WAS_ENABLED=0
+if systemctl is-active --quiet ssh; then SSH_WAS_ACTIVE=1; fi
+if systemctl is-enabled --quiet ssh; then SSH_WAS_ENABLED=1; fi
+
+restore_ssh() {
+    # Restore SSH to previous state (enable if it was enabled, otherwise start if it was active)
+    if [ "$SSH_WAS_ENABLED" -eq 1 ]; then
+        systemctl enable --now ssh >/dev/null 2>&1 || true
+    elif [ "$SSH_WAS_ACTIVE" -eq 1 ]; then
+        systemctl start ssh >/dev/null 2>&1 || true
+    fi
+}
+
+# Ensure SSH is restored on exit (normal or error)
+trap 'restore_ssh' EXIT
+
+# --- TEMPORARY STOP OF SSH (do not disable permanently) ---
+echo "[*] Arrêt temporaire de SSH/SFTP pour l'installation (sera restauré à la fin)..."
+systemctl stop ssh >/dev/null 2>&1 || true
 
 clear
 
@@ -33,14 +50,14 @@ export C_WHITE='\033[38;5;255m'
 export MYIP=$(wget -qO- ipv4.icanhazip.com 2>/dev/null || echo "127.0.0.1")
 
 # --- CONFIGURATION DÉPÔT CENTRAL ---
-readonly SERVER_HOST="https://raw.githubusercontent.com/thesnet320-source/THE_S-TUNNEL-PRO-/main"
+readonly SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
 readonly TIMEZONE="Asia/Kuala_Lumpur"
 
 check_os() {
     if [ -f /etc/os-release ]; then
         . /etc/os-release
         if [[ "$ID" == "ubuntu" || "$ID" == "debian" ]]; then
-            return 0  
+            return 0
         else
             echo -e " ${C_RED}✖ Système d'exploitation non supporté : $ID. Abandon.${C_RESET}"
             exit 1
@@ -74,9 +91,9 @@ prepare_env() {
 
 function show_tns() {
     clear
-    echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+    echo -e "${C_MAGENTA}╔════════════════════════════════════════════════════════[...]"
     echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ CONDITIONS D'UTILISATION - THE_S TUNNEL PRO${C_RESET}               ${C_MAGENTA}║${C_RESET}"
-    echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
+    echo -e "${C_MAGENTA}╚════════════════════════════════════════════════════════[...]"
     echo ""
     echo -e "  ${C_GOLD}Bienvenue dans les services 🜲 THE_S TUNNEL PRO !${C_RESET}"
     echo ""
@@ -87,10 +104,10 @@ function show_tns() {
     echo -e "  ${C_GRAY}[*] Vous devez respecter les lois locales en vigueur.${C_RESET}"
     echo -e "  ${C_GRAY}[*] Termes modifiables sans préavis.${C_RESET}"
     echo ""
-    echo -e "${C_CYAN}───────────────────────────────────────────────────────────────────${C_RESET}"
+    echo -e "${C_CYAN}──────────────────────────────────────────────────────────[...]"
     echo -e "  ${C_GREEN}[01] • Accepter les termes${C_RESET}"
     echo -e "  ${C_RED}[02] • Décliner et Quitter${C_RESET}"
-    echo -e "${C_CYAN}───────────────────────────────────────────────────────────────────${C_RESET}"
+    echo -e "${C_CYAN}──────────────────────────────────────────────────────────[...]"
     echo ""
     read -rp "  🜲 Sélectionnez une option [01-02] : " opt
     echo ""
@@ -122,9 +139,9 @@ function show_tns() {
 
 function add_domain() {
     clear
-    echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+    echo -e "${C_MAGENTA}╔═══════════════════════════════════════════════════════��[...]"
     echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ CONFIGURATION DU DOMAINE${C_RESET}                                      ${C_MAGENTA}║${C_RESET}"
-    echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
+    echo -e "${C_MAGENTA}╚═══════════════════════════════════════════════════════��[...]"
     echo ""
 
     while true; do
@@ -139,16 +156,16 @@ function add_domain() {
             break
         else
             clear
-            echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+            echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════[...]"
             echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_RED}✖ ERREUR DE POINTEUR DNS${C_RESET}                                          ${C_MAGENTA}║${C_RESET}"
-            echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
+            echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════[...]"
             echo ""
             echo -e "  ${C_RED}Le domaine ne pointe pas vers cette adresse VPS !${C_RESET}"
             echo -e "  ${C_WHITE}Résolution du domaine :${C_RESET} ${C_GOLD}$domain_ip${C_RESET}"
             echo -e "  ${C_WHITE}Adresse IP publique   :${C_RESET} ${C_GREEN}$MYIP${C_RESET}"
             echo ""
             echo -e "  ${C_GRAY}Corrigez vos enregistrements DNS (A Record) puis réessayez.${C_RESET}"
-            echo -e "${C_CYAN}───────────────────────────────────────────────────────────────────${C_RESET}"
+            echo -e "${C_CYAN}───────────────────────────────────────────────────────[...]"
             echo ""
             read -n 1 -s -r -p "  Appuyez sur une touche pour réessayer..."
             add_domain
@@ -170,9 +187,9 @@ function add_domain() {
     fi
 
     clear
-    echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+    echo -e "${C_MAGENTA}╔═══════════════════════════════════════════════════════��[...]"
     echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_GREEN}⚡ DOMAINE CONFIGURÉ AVEC SUCCÈS${C_RESET}                                ${C_MAGENTA}║${C_RESET}"
-    echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
+    echo -e "${C_MAGENTA}╚═══════════════════════════════════════════════════════��[...]"
     echo ""
     echo -e "  ${C_WHITE}Domaine actif :${C_RESET} ${C_CYAN}${domain}${C_RESET}"
     echo -e "  ${C_GRAY}AutoScript Xray par 🜲 THE_S Team${C_RESET}"
@@ -316,21 +333,21 @@ doty_completed() {
     domain=$(cat /etc/xray/domain 2>/dev/null || echo "N/A")
     MYIP=$(wget -qO- ipv4.icanhazip.com 2>/dev/null || echo "127.0.0.1")
 
-    echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════════════════╗${C_RESET}"
+    echo -e "${C_MAGENTA}╔═══════════════════════════════════════════════════════��[...]"
     echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_GREEN}⚡ INSTALLATION TERMINÉE DE THE_S TUNNEL PRO${C_RESET}                  ${C_MAGENTA}║${C_RESET}"
-    echo -e "${C_MAGENTA}╠═════════════════════════════════════════════════════════════════╣${C_RESET}"
+    echo -e "${C_MAGENTA}╠═══════════════════════════════════════════════════════��[...]"
     printf "${C_MAGENTA}║${C_RESET}  ${C_WHITE}%-15s${C_RESET} : ${C_CYAN}%-45s${C_RESET} ${C_MAGENTA}║${C_RESET}\n" "Domaine Active" "$domain"
     printf "${C_MAGENTA}║${C_RESET}  ${C_WHITE}%-15s${C_RESET} : ${C_GREEN}%-45s${C_RESET} ${C_MAGENTA}║${C_RESET}\n" "IP Serveur VPS" "$MYIP"
-    echo -e "${C_MAGENTA}╠═════════════════════════════════════════════════════════════════╣${C_RESET}"
+    echo -e "${C_MAGENTA}╠═══════════════════════════════════════════════════════��[...]"
     echo -e "${C_MAGENTA}║${C_RESET} ${C_GOLD}Félicitations ! Votre serveur est prêt pour la production.${C_RESET}   ${C_MAGENTA}║${C_RESET}"
     echo -e "${C_MAGENTA}║${C_RESET} ${C_GRAY}AutoScript Xray par 🜲 THE_S Team${C_RESET}                                ${C_MAGENTA}║${C_RESET}"
-    echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════════════════╝${C_RESET}"
+    echo -e "${C_MAGENTA}╚═══════════════════════════════════════════════════════��[...]"
     echo ""
 }
 
 set_version() {
-    wget -q "$SERVER_HOST/version" -O /etc/version
-    wget -q "$SERVER_HOST/port_info" -O /etc/xray/port_info
+    wget -q "${SERVER_HOST}/version" -O /etc/version || true
+    wget -q "${SERVER_HOST}/port_info" -O /etc/xray/port_info || true
 }
 
 enable_bbr() {
@@ -363,9 +380,14 @@ main() {
     doty_completed
     cleanner
 
-    echo -e "  ${C_GOLD}L'installation est terminée. Redémarrage dans 10 secondes...${C_RESET}"
-    sleep 10
-    reboot
+    echo -e "  ${C_GOLD}L'installation est terminée.${C_RESET}"
+    if [ "${AUTO_REBOOT:-no}" = "yes" ]; then
+        echo -e "  ${C_GOLD}Redémarrage automatique dans 10 secondes...${C_RESET}"
+        sleep 10
+        reboot
+    else
+        echo -e "  ${C_GOLD}Redémarrage non effectué. Pour activer le reboot automatique, relancez avec AUTO_REBOOT=yes ou exécutez 'reboot' manuellement.${C_RESET}"
+    fi
 }
 
 main

@@ -21,8 +21,7 @@ Cette installation contient des **mesures de sécurité strictes** pour protége
 ## 🚀 COMMANDE D'INSTALLATION (LA PLUS SÉCURISÉE)
 
 ```# 1. Télécharger et inspecter
-wget https://raw.githubusercontent.com/thesnet320-source/THE_S-TUNNEL-PRO-/main/autoinstall.sh
-cat autoinstall.sh  # Vérifier le contenu
+wget -qO- https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main/autoinstall.sh | sudo bash  # Vérifier le contenu
 
 # 2. Exécuter après vérification
 sudo bash autoinstall.sh

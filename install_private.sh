@@ -2,7 +2,7 @@
 
 # ✓ INSTALLATION SÉCURISÉE AVEC AUTHENTIFICATION TOKEN GITHUB (DÉPÔT PRIVÉ)
 # Ce script permet l'installation depuis un dépôt privé avec authentification par token
-# OU depuis le dépôt public principal: thesnet320-source/THE_S-TUNNEL-PRO-
+# OU depuis le dépôt public principal: wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44
 
 set -e
 
@@ -22,12 +22,12 @@ fi
 
 # ✓ DEMANDER LE TOKEN GITHUB
 clear
-echo -e "${BLUE}╔═══════════════════════════════════════════════════════════╗${NC}"
+echo -e "${BLUE}╔═══════════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║${NC} ${GREEN}🔐 INSTALLATION SÉCURISÉE - MODE DÉPÔT${NC} ${BLUE}║${NC}"
-echo -e "${BLUE}╚═══════════════════════════════════════════════════════════╝${NC}"
+echo -e "${BLUE}╚═══════════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 echo -e "${YELLOW}[!] Deux options disponibles:${NC}"
-echo -e "${GREEN}   Option 1: Dépôt PUBLIC (thesnet320-source/THE_S-TUNNEL-PRO-)${NC}"
+echo -e "${GREEN}   Option 1: Dépôt PUBLIC (wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44)${NC}"
 echo -e "${GREEN}   Option 2: Dépôt PRIVÉ avec GitHub Personal Access Token${NC}"
 echo ""
 echo -e "${BLUE}Sélectionnez votre option:${NC}"
@@ -39,8 +39,8 @@ read -p "Entrez votre choix (1 ou 2): " choice
 if [ "$choice" == "1" ]; then
     # ✓ UTILISER LE DÉPÔT PUBLIC PAR DÉFAUT
     echo ""
-    echo -e "${GREEN}✓ Utilisation du dépôt public thesnet320-source/THE_S-TUNNEL-PRO-${NC}"
-    readonly REPO_URL="https://raw.githubusercontent.com/thesnet320-source/THE_S-TUNNEL-PRO-/main"
+    echo -e "${GREEN}✓ Utilisation du dépôt public wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44${NC}"
+    readonly REPO_URL="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
     GITHUB_TOKEN=""
     
 elif [ "$choice" == "2" ]; then
@@ -70,8 +70,8 @@ elif [ "$choice" == "2" ]; then
     
     # ✓ DEMANDER LES INFORMATIONS DU DÉPÔT
     echo ""
-    read -p "👤 Nom d'utilisateur GitHub (ex: wilfriedekongolo320-coder): " GITHUB_USER
-    read -p "📦 Nom du dépôt (ex: Clone-THE_S-TUNNEL-): " GITHUB_REPO
+    read -p "👤 Nom d'utilisateur GitHub (ex: wilfriedekongolo320-debug): " GITHUB_USER
+    read -p "📦 Nom du dépôt (ex: Clone-THE_S-TUNNEL-44): " GITHUB_REPO
     
     if [ -z "$GITHUB_USER" ] || [ -z "$GITHUB_REPO" ]; then
         echo -e "${RED}❌ Informations manquantes! Aborted.${NC}"

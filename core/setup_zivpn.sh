@@ -1,9 +1,9 @@
 clear
-RED='[31m'
-GREEN='[32m'
-BLUE='[34m'
-NC='[0m'
-export SERVER_HOST="https://raw.githubusercontent.com/RootNexTPro/nexTPro-ScriptAll/main"
+RED='[31m'
+GREEN='[32m'
+BLUE='[34m'
+NC='[0m'
+export SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
 update_system() {
 echo -e "${BLUE}Updating server...${NC}"
 sudo apt-get update && sudo apt-get upgrade -y

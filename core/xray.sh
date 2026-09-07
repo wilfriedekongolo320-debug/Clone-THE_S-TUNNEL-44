@@ -1,10 +1,8 @@
 clear
-export SERVER_HOST="https://raw.githubusercontent.com/thesnet320-source/THE_S-TUNNEL-PRO-/main"
+export SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
 export DEBIAN_FRONTEND=noninteractive
-log() { printf "%b
-" "[INFO] $*"; }
-err() { printf "%b
-" "[ERROR] $*" >&2; exit 1; }
+log() { printf "%b\n" "[INFO] $*"; }
+err() { printf "%b\n" "[ERROR] $*" >&2; exit 1; }
 apt_install() {
     packages=("$@")
     if [ ! -f /var/lib/apt/periodic/update-success-stamp ]; then

@@ -1,6 +1,6 @@
 clear
 export DEBIAN_FRONTEND=noninteractive
-export SERVER_HOST="https://raw.githubusercontent.com/thesnet320-source/THE_S-TUNNEL-PRO-/main"
+export SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
 
 setup_variables() {
     MYIP=$(wget -qO- ipv4.icanhazip.com)
@@ -41,7 +41,7 @@ END
 
 disable_ipv6() {
     echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
-    sed -i '$ icho 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6' /etc/rc.local
+    sed -i '$ i echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6' /etc/rc.local
 }
 
 configure_nginx() {

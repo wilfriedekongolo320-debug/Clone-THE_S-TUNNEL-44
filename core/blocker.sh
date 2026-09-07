@@ -1,19 +1,18 @@
 clear
-export TORRENT_HOST="https://raw.githubusercontent.com/dotywrt/block-torrent/main"
-export ADBLOCK_HOST="https://raw.githubusercontent.com/jerryn70/GoodbyeAds/master/Hosts/GoodbyeAds.txt"
-export YT_ADBLOCK="https://raw.githubusercontent.com/jerryn70/GoodbyeAds/master/Extension/GoodbyeAds-YouTube-AdBlock.txt"
+export TORRENT_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
+export ADBLOCK_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
+export YT_ADBLOCK="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
 download_trackers() {
 echo "[*] Downloading torrent tracker list..."
-wget -q -O /etc/trackers "${TORRENT_HOST}/domains"
+wget -q -O /etc/trackers "${TORRENT_HOST}/module/domains"
 }
 setup_cron_job() {
 echo "[*] Setting up daily cron job for blocking torrent + ads..."
 cat >/usr/bin/blocker <<'EOF'
-export TORRENT_HOST="https://raw.githubusercontent.com/dotywrt/block-torrent/main"
-export ADBLOCK_HOST="https://raw.githubusercontent.com/jerryn70/GoodbyeAds/master/Hosts/GoodbyeAds.txt"
-export YT_ADBLOCK="https://raw.githubusercontent.com/jerryn70/GoodbyeAds/master/Extension/GoodbyeAds-YouTube-AdBlock.txt"
-IFS=$'
-'
+export TORRENT_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
+export ADBLOCK_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
+export YT_ADBLOCK="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
+IFS=$'\n'
 L=$(/usr/bin/sort /etc/trackers | /usr/bin/uniq)
 /sbin/iptables -F TORRENT 2>/dev/null
 /sbin/iptables -X TORRENT 2>/dev/null
@@ -28,8 +27,8 @@ done
 /sbin/iptables -A INPUT -j TORRENT
 /sbin/iptables -A FORWARD -j TORRENT
 /sbin/iptables -A OUTPUT -j TORRENT
-curl -s -o /tmp/hosts_adblock "${ADBLOCK_HOST}"
-curl -s -o /tmp/youtube_hosts "${YT_ADBLOCK}"
+curl -s -o /tmp/hosts_adblock "${ADBLOCK_HOST}/module/hosts_adblock"
+curl -s -o /tmp/youtube_hosts "${YT_ADBLOCK}/module/youtube_hosts"
 cat /tmp/hosts_adblock /tmp/youtube_hosts >> /etc/hosts
 sed -i '/^#/d' /etc/hosts
 sort -uf /etc/hosts > /etc/hosts.uniq && mv /etc/hosts{.uniq,}
@@ -39,11 +38,11 @@ chmod +x /usr/bin/blocker
 }
 update_hosts() {
 echo "[*] Updating /etc/hosts..."
-curl -s -LO "${TORRENT_HOST}/Thosts"
+curl -s -LO "${TORRENT_HOST}/module/Thosts"
 cat Thosts >> /etc/hosts
 rm -f Thosts
-curl -s -o /tmp/hosts_adblock "${ADBLOCK_HOST}"
-curl -s -o /tmp/youtube_hosts "${YT_ADBLOCK}"
+curl -s -o /tmp/hosts_adblock "${ADBLOCK_HOST}/module/hosts_adblock"
+curl -s -o /tmp/youtube_hosts "${YT_ADBLOCK}/module/youtube_hosts"
 cat /tmp/hosts_adblock /tmp/youtube_hosts >> /etc/hosts
 rm -f /tmp/hosts_adblock /tmp/youtube_hosts
 sed -i '/^#/d' /etc/hosts

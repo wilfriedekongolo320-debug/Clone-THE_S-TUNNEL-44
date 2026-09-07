@@ -1,5 +1,5 @@
 clear
-export SERVER_HOST="https://raw.githubusercontent.com/RootNexTPro/nexTPro-ScriptAll/main"
+export SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
 export UDP_DIR="/etc/udp-custom"
 export SERVICE_FILE="/etc/systemd/system/udp-custom.service"
 update_system() {
@@ -19,7 +19,7 @@ local exclude_arg=""
 [ -n "$1" ] && exclude_arg="-exclude $1"
 cat <<EOF > "$SERVICE_FILE"
 [Unit]
-Description=UDP Custom by ePro Dev. Team
+Description=UDP Custom by Clone-THE_S-TUNNEL
 [Service]
 User=root
 Type=simple

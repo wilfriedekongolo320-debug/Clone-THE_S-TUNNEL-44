@@ -1,4 +1,4 @@
-export SERVER_HOST="https://raw.githubusercontent.com/RootNexTPro/nexTPro-ScriptAll/main"
+export SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
 CONF_DIR="/etc/nginx"
 configure_nginx() {
 echo "Downloading nginx xray conf..."

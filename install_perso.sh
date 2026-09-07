@@ -7,7 +7,7 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-GITHUB_RAW="https://raw.githubusercontent.com/thesnet320-source/THE_S-TUNNEL-PRO-/main"
+GITHUB_RAW="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
 
 echo "--- Vérification ROOT: OK ---"
 echo "--- Désactivation SSH/SFTP pendant l'installation ---"

@@ -6,7 +6,7 @@ export PORT_OVPN_TCP=1194
 export PORT_OVPN_UDP=2200
 export PORT_SQUID=3128
 export PORT_OHP=8000
-export SERVER_HOST="https://raw.githubusercontent.com/thesnet320-source/THE_S-TUNNEL-PRO-/main"
+export SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
 export DTC=$(ip -o -4 route show to default | awk '{print $5}')
 
 install_packages() {

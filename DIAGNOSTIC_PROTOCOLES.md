@@ -1,7 +1,7 @@
 ````markdown
 # 🔴 DIAGNOSTIC COMPLET DES PROBLÈMES DE PROTOCOLES
 
-**Dépôt**: https://github.com/wilfriedekongolo320-coder/Clone-THE_S-TUNNEL-  
+**Dépôt**: https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main  
 **Date**: 2026-08-26  
 **Version Script**: 2026.08.20  
 **État**: ⚠️ **CRITIQUE - Protocoles WebSocket cassés**

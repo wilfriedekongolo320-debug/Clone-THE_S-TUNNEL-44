@@ -1,7 +1,7 @@
 #!/bin/bash
 # ==============================================================================
 # Script d'installation et de déploiement corrigé - THE_S-TUNNEL-PRO- / NEXUS BOT
-# Dépôt GitHub : https://github.com/thesnet320-source/THE_S-TUNNEL-PRO-.git
+# Dépôt GitHub : https://github.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44.git
 # ==============================================================================
 
 set -e

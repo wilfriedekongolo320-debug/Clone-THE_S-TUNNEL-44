@@ -13,7 +13,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-REPO_URL="https://github.com/thesnet320-source/THE_S-TUNNEL-PRO-.git"
+REPO_URL="https://github.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44.git"
 INSTALL_DIR="/opt/the_s_bot"
 CONFIG_DIR="/etc/the_s_bot"
 SERVICE_NAME="nexus_bot"

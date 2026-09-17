@@ -108,7 +108,7 @@ echo -e "${C_RESET}"
 #  2. MATRICE SYSTEME & SERVICES
 # ==============================================================================
 echo -e "${C_MAGENTA}╔══════════════════════════════════════════════════════════╗${C_RESET}"
-echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ CYBER-MATRIX SYSTEM INFOS${C_RESET}                               ${C_MAGENTA}║${C_RESET}"
+echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ SYSTEM INFOS${C_RESET}                               ${C_MAGENTA}║${C_RESET}"
 echo -e "${C_MAGENTA}╠══════════════════════════════════════════════════════════╣${C_RESET}"
 printf "${C_MAGENTA}║${C_RESET}  ${C_WHITE}OS${C_RESET}     : %-18s  ${C_WHITE}UPTIME${C_RESET} : %-16s ${C_MAGENTA}║${C_RESET}\n" "$OS $VER" "${uptime:-N/A}"
 printf "${C_MAGENTA}║${C_RESET}  ${C_WHITE}CPU${C_RESET}    : [${C_CYAN}%s${C_RESET}] %-3d%%    ${C_WHITE}RAM${C_RESET}    : [${C_CYAN}%s${C_RESET}] %-3d%%    ${C_MAGENTA}║${C_RESET}\n" "$CPU_BAR" "${CPU_USAGE:-0}" "$RAM_BAR" "${RAM_USAGE:-0}"

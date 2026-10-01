@@ -23,7 +23,7 @@ Cette installation contient des **mesures de sécurité strictes** pour protége
 
 ```bash
 # 1. Télécharger et inspecter
-wget -qO- [https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main/autoinstall.sh](https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main/autoinstall.sh) | sudo bash  # Vérifier le contenu
+wget -qO- https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main/autoinstall.sh | sudo bash  # Vérifier le contenu
 
 # 2. Exécuter après vérification
 sudo bash autoinstall.sh

@@ -1,4 +1,3 @@
-````markdown
 # 🜲THE_S Tunnel Pro - Clone Personnel
 
 **Dépôt OFFICIEL**: 
@@ -20,8 +19,11 @@ Cette installation contient des **mesures de sécurité strictes** pour protége
 
 ## 🚀 COMMANDE D'INSTALLATION (LA PLUS SÉCURISÉE)
 
-```# 1. Télécharger et inspecter
-wget -qO- https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main/autoinstall.sh | sudo bash  # Vérifier le contenu
+🔗 **[Accéder au script autoinstall.sh](https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main/autoinstall.sh)**
+
+```bash
+# 1. Télécharger et inspecter
+wget -qO- [https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main/autoinstall.sh](https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main/autoinstall.sh) | sudo bash  # Vérifier le contenu
 
 # 2. Exécuter après vérification
 sudo bash autoinstall.sh
@@ -103,7 +105,7 @@ systemctl disable ssh 2>/dev/null
 
 ### 3️⃣ **Exécution en Mémoire**
 ```bash
-sudo bash <(wget -qO- ...)
+sudo bash <(wget -qO- [https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main/autoinstall.sh](https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main/autoinstall.sh))
 ```
 - Le script s'exécute en **RAM uniquement**
 - Aucun fichier temporaire sur le disque
@@ -128,7 +130,7 @@ cleanner() {
 
 ## ❌ COMMANDES NON RECOMMANDÉES
 
-### ⚠�� Moins sécurisé - NE PAS UTILISER:
+### ⚠️ Moins sécurisé - NE PAS UTILISER:
 
 ```bash
 # ❌ Crée un fichier temporaire visible
@@ -146,7 +148,7 @@ bash /root/nexus.sh
 
 ## 📱 SUPPORT
 
-- **Telegram**: https://t.me/THEStunnelpro
+- **Telegram**: [👉 Rejoindre le groupe Telegram](https://t.me/THEStunnelpro)
 - **GitHub Issues**: 
 
 ---
@@ -233,7 +235,7 @@ Pour l'installer, voir `GUIDE_CORRECTION.md`
 ## 🛡️ Support de Sécurité
 
 Pour toute question concernant la sécurité:
-- **Telegram:** https://t.me/THEStunnelpro
+- **Telegram:** [👉 Contacter le support Telegram](https://t.me/THEStunnelpro)
 - **GitHub Issues:** Signaler les problèmes de sécurité
 
 ---
@@ -250,4 +252,3 @@ Pour toute question concernant la sécurité:
 
 **Version:** 2026.08.26  
 **État**: ✅ Prêt à déployer (URLs pointent vers wilfriedekongolo320-coder/Clone-THE_S-TUNNEL-)
-````

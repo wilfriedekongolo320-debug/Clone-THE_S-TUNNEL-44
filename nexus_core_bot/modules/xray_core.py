@@ -6,9 +6,8 @@ import os
 import re
 
 XRAY_CONF = "/etc/xray/config.json"
-DB_DIR = "/etc/the_s_bot/xray_accounts"
+DB_DIR = "/etc/nexus_bot/xray_accounts"
 
-# Balises possibles selon les installs courantes
 MARKERS = {
     "vless": ["#vless", "#vlessws", "#vlessgrpc", "# vless"],
     "vmess": ["#vmess", "#vmessws", "#vmessgrpc", "# vmess"],
@@ -68,7 +67,7 @@ def _build_links(protocol, user, client_id, domain):
             f"trojan://{client_id}@{domain}:443?mode=gun&security=tls"
             f"&type=grpc&serviceName=trojan-grpc&sni={domain}#{user}"
         )
-    else:  # socks
+    else:
         link_tls = f"socks5://{user}:{client_id}@{domain}:1080"
         link_ntls = link_tls
         link_grpc = link_tls
@@ -163,7 +162,7 @@ def get_xray_usernames(protocol):
         return []
     prefix = f"{protocol}_"
     return [
-        f[len(prefix) :].replace(".txt", "")
+        f[len(prefix):].replace(".txt", "")
         for f in sorted(os.listdir(DB_DIR))
         if f.startswith(prefix) and f.endswith(".txt")
     ]
@@ -198,9 +197,9 @@ def renew_xray_account(protocol, user, days):
     lines_db = []
     with open(db_file, "r", encoding="utf-8") as f:
         lines_db = f.readlines()
-    for l in lines_db:
-        if l.startswith("expiry="):
-            current_exp = l.split("=", 1)[1].strip()
+    for line in lines_db:
+        if line.startswith("expiry="):
+            current_exp = line.split("=", 1)[1].strip()
             break
 
     try:
@@ -227,11 +226,11 @@ def renew_xray_account(protocol, user, days):
         subprocess.run("systemctl restart xray", shell=True, capture_output=True)
 
     new_db_lines = []
-    for l in lines_db:
-        if l.startswith("expiry="):
+    for line in lines_db:
+        if line.startswith("expiry="):
             new_db_lines.append(f"expiry={new_exp}\n")
         else:
-            new_db_lines.append(l)
+            new_db_lines.append(line)
     with open(db_file, "w", encoding="utf-8") as f:
         f.writelines(new_db_lines)
 
@@ -295,14 +294,14 @@ def list_xray_accounts(protocol):
         return f"📋 Aucun compte {protocol.upper()} trouvé."
 
     msg = f"📋 <b>LISTE DES COMPTES {protocol.upper()}:</b>\n\n"
-    for e in sorted(entries):
-        user = e[len(protocol) + 1 :].replace(".txt", "")
+    for entry in sorted(entries):
+        user = entry[len(protocol) + 1:].replace(".txt", "")
         expiry = "N/A"
         try:
-            with open(f"{DB_DIR}/{e}", encoding="utf-8") as f:
-                for l in f:
-                    if l.startswith("expiry="):
-                        expiry = l.split("=", 1)[1].strip()
+            with open(f"{DB_DIR}/{entry}", encoding="utf-8") as f:
+                for line in f:
+                    if line.startswith("expiry="):
+                        expiry = line.split("=", 1)[1].strip()
         except Exception:
             pass
         msg += f"👤 <code>{user}</code> | Exp: <i>{expiry}</i>\n"

@@ -3,7 +3,7 @@ import os
 import re
 from datetime import datetime, timedelta
 
-META_DIR = "/etc/the_s_bot/zivpn_accounts"
+META_DIR = "/etc/nexus_bot/zivpn_accounts"
 DB_FILE = "/etc/zivpn/user.db"
 CONF_FILE = "/etc/zivpn/config.json"
 
@@ -164,8 +164,11 @@ def renew_zivpn_account(user, days):
         with open(meta_file, "r", encoding="utf-8") as f:
             meta_lines = f.readlines()
         with open(meta_file, "w", encoding="utf-8") as f:
-            for l in meta_lines:
-                f.write(f"expiry={new_exp}\n" if l.startswith("expiry=") else l)
+            for line in meta_lines:
+                if line.startswith("expiry="):
+                    f.write(f"expiry={new_exp}\n")
+                else:
+                    f.write(line)
 
     ok, details = get_zivpn_account_details(user)
     if ok:

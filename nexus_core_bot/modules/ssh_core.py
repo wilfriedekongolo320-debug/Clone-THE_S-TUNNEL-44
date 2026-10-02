@@ -2,7 +2,7 @@ import subprocess
 import os
 from datetime import datetime, timedelta
 
-DB_DIR = "/etc/the_s_bot/ssh_accounts"
+DB_DIR = "/etc/nexus_bot/ssh_accounts"
 
 
 def get_file(path, default="NON_DEFINI"):
@@ -55,10 +55,7 @@ def _format_ssh_details(user, password, exp_date):
 
 
 def create_ssh_account(user, password, days, created_by_id=None):
-    cmd = (
-        f"useradd -e $(date -d '{days} days' +'%Y-%m-%d') -s /bin/false -M {user} "
-        f"&& echo '{user}:{password}' | chpasswd"
-    )
+    cmd = f"useradd -e $(date -d '{days} days' +'%Y-%m-%d') -s /bin/false -M {user} && echo '{user}:{password}' | chpasswd"
     res = subprocess.run(cmd, shell=True, capture_output=True, text=True)
 
     if res.returncode != 0:
@@ -131,8 +128,11 @@ def renew_ssh_account(user, days):
         with open(db_file, "r", encoding="utf-8") as f:
             db_lines = f.readlines()
         with open(db_file, "w", encoding="utf-8") as f:
-            for l in db_lines:
-                f.write(f"expiry={new_exp}\n" if l.startswith("expiry=") else l)
+            for line in db_lines:
+                if line.startswith("expiry="):
+                    f.write(f"expiry={new_exp}\n")
+                else:
+                    f.write(line)
 
     ok, details = get_ssh_account_details(user)
     if ok:
@@ -186,18 +186,18 @@ def list_ssh_accounts():
         return "📋 Aucun compte SSH trouvé."
 
     msg = "📋 <b>LISTE DES COMPTES SSH:</b>\n\n"
-    for u in users:
-        exp_cmd = f"chage -l {u} | grep 'Account expires' | awk -F': ' '{{print $2}}'"
+    for user in users:
+        exp_cmd = f"chage -l {user} | grep 'Account expires' | awk -F': ' '{{print $2}}'"
         exp_date = (
             subprocess.run(exp_cmd, shell=True, capture_output=True, text=True)
             .stdout.strip()
         )
-        status_cmd = f"passwd -S {u} | awk '{{print $2}}'"
+        status_cmd = f"passwd -S {user} | awk '{{print $2}}'"
         status = (
             subprocess.run(status_cmd, shell=True, capture_output=True, text=True)
             .stdout.strip()
         )
         lock_icon = "🔒" if status == "L" else "🔓"
-        msg += f"{lock_icon} <code>{u}</code> | Exp: <i>{exp_date}</i>\n"
+        msg += f"{lock_icon} <code>{user}</code> | Exp: <i>{exp_date}</i>\n"
     msg += f"\n📊 <b>Total:</b> {len(users)} compte(s)"
     return msg

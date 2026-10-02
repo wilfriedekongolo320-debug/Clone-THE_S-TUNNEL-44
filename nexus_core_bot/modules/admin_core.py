@@ -22,7 +22,8 @@ def list_admins():
     super_admins = cfg.get("super_admins", [])
 
     msg = "👑 <b>SUPER ADMINS :</b>\n"
-    msg += f"<code>{super_admin}</code>\n"
+    if super_admin is not None:
+        msg += f"<code>{super_admin}</code>\n"
     for sa in super_admins:
         if sa != super_admin:
             msg += f"<code>{sa}</code>\n"

@@ -16,6 +16,18 @@ def get_file(path, default="NON_DEFINI"):
         return default
 
 
+def _get_public_ip():
+    for cmd in (
+        "wget -qO- ipv4.icanhazip.com 2>/dev/null",
+        "curl -s ipv4.icanhazip.com",
+        "curl -s ifconfig.me",
+    ):
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        if result.returncode == 0 and result.stdout.strip():
+            return result.stdout.strip()
+    return "N/A"
+
+
 def create_zivpn_account(user, password, days, created_by_id=None):
     if not os.path.exists(CONF_FILE):
         return False, "❌ Fichier config ZIVPN introuvable. Le VPS est-il bien configuré ?"
@@ -68,9 +80,7 @@ def create_zivpn_account(user, password, days, created_by_id=None):
         )
 
     domain = get_file("/etc/xray/domain", "votre-domaine.com")
-    myip = subprocess.getoutput(
-        "wget -qO- ipv4.icanhazip.com 2>/dev/null || curl -s ipv4.icanhazip.com"
-    ).strip()
+    myip = _get_public_ip()
 
     msg = (
         f"┏━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
@@ -107,9 +117,7 @@ def get_zivpn_account_details(user):
                 k, v = line.strip().split("=", 1)
                 data[k] = v
     domain = get_file("/etc/xray/domain", "votre-domaine.com")
-    myip = subprocess.getoutput(
-        "wget -qO- ipv4.icanhazip.com 2>/dev/null || curl -s ipv4.icanhazip.com"
-    ).strip()
+    myip = _get_public_ip()
     msg = (
         f"┏━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
         f"┃ <b>ZIVPN ACCOUNT DETAILS</b>\n"
@@ -244,3 +252,4 @@ def list_zivpn_accounts():
             count += 1
     msg += f"\n📊 <b>Total:</b> {count} compte(s)"
     return msg
+

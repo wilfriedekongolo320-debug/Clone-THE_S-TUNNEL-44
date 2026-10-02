@@ -1,5 +1,6 @@
 import subprocess
 import os
+import shlex
 from datetime import datetime, timedelta
 
 DB_DIR = "/etc/nexus_bot/ssh_accounts"
@@ -13,13 +14,23 @@ def get_file(path, default="NON_DEFINI"):
         return default
 
 
+def _get_public_ip():
+    for cmd in (
+        "wget -qO- ipv4.icanhazip.com 2>/dev/null",
+        "curl -s ipv4.icanhazip.com",
+        "curl -s ifconfig.me",
+    ):
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        if result.returncode == 0 and result.stdout.strip():
+            return result.stdout.strip()
+    return "N/A"
+
+
 def _server_info():
     domain = get_file("/etc/xray/domain", "votre-domaine.com")
     pub_key = get_file("/etc/slowdns/server.pub", "PUB_KEY_NOT_FOUND")
     ns_domain = get_file("/etc/slowdns/nsdomain", "NS_DOMAIN_NOT_FOUND")
-    myip = subprocess.getoutput(
-        "wget -qO- ipv4.icanhazip.com 2>/dev/null || curl -s ipv4.icanhazip.com || curl -s ifconfig.me"
-    ).strip()
+    myip = _get_public_ip()
     return domain, pub_key, ns_domain, myip
 
 
@@ -55,13 +66,21 @@ def _format_ssh_details(user, password, exp_date):
 
 
 def create_ssh_account(user, password, days, created_by_id=None):
-    cmd = f"useradd -e $(date -d '{days} days' +'%Y-%m-%d') -s /bin/false -M {user} && echo '{user}:{password}' | chpasswd"
-    res = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-
+    exp_date = (datetime.now() + timedelta(days=int(days))).strftime("%Y-%m-%d")
+    create_cmd = ["useradd", "-e", exp_date, "-s", "/bin/false", "-M", user]
+    res = subprocess.run(create_cmd, capture_output=True, text=True)
     if res.returncode != 0:
         return False, f"❌ Échec de la création:\n<code>{res.stderr}</code>"
 
-    exp_date = (datetime.now() + timedelta(days=int(days))).strftime("%Y-%m-%d")
+    chpasswd = subprocess.run(
+        ["chpasswd"],
+        input=f"{user}:{password}\n",
+        capture_output=True,
+        text=True,
+    )
+    if chpasswd.returncode != 0:
+        return False, f"❌ Échec de la création:\n<code>{chpasswd.stderr}</code>"
+
     os.makedirs(DB_DIR, exist_ok=True)
     with open(f"{DB_DIR}/{user}.txt", "w", encoding="utf-8") as f:
         f.write(
@@ -102,10 +121,10 @@ def get_ssh_account_details(user):
 
 
 def renew_ssh_account(user, days):
-    if subprocess.run(f"id {user}", shell=True, capture_output=True).returncode != 0:
+    if subprocess.run(["id", user], shell=False, capture_output=True).returncode != 0:
         return False, f"❌ Utilisateur <code>{user}</code> introuvable."
 
-    exp_cmd = f"chage -l {user} | grep 'Account expires' | awk -F': ' '{{print $2}}'"
+    exp_cmd = f"chage -l {shlex.quote(user)} | grep 'Account expires' | awk -F': ' '{{print $2}}'"
     current_exp = (
         subprocess.run(exp_cmd, shell=True, capture_output=True, text=True)
         .stdout.strip()
@@ -120,8 +139,8 @@ def renew_ssh_account(user, days):
     except ValueError:
         new_exp = (datetime.now() + timedelta(days=int(days))).strftime("%Y-%m-%d")
 
-    subprocess.run(f"usermod -e {new_exp} {user}", shell=True)
-    subprocess.run(f"passwd -u {user}", shell=True, capture_output=True)
+    subprocess.run(["usermod", "-e", new_exp, user], shell=False)
+    subprocess.run(["passwd", "-u", user], shell=False, capture_output=True)
 
     db_file = f"{DB_DIR}/{user}.txt"
     if os.path.exists(db_file):
@@ -151,11 +170,11 @@ def renew_ssh_account(user, days):
 
 
 def delete_ssh_account(user):
-    if subprocess.run(f"id {user}", shell=True, capture_output=True).returncode != 0:
+    if subprocess.run(["id", user], shell=False, capture_output=True).returncode != 0:
         return False, f"❌ Utilisateur <code>{user}</code> introuvable."
 
-    subprocess.run(f"pkill -u {user}", shell=True, capture_output=True)
-    subprocess.run(f"userdel -r {user}", shell=True, capture_output=True)
+    subprocess.run(["pkill", "-u", user], shell=False, capture_output=True)
+    subprocess.run(["userdel", "-r", user], shell=False, capture_output=True)
 
     db_file = f"{DB_DIR}/{user}.txt"
     if os.path.exists(db_file):
@@ -165,16 +184,16 @@ def delete_ssh_account(user):
 
 
 def lock_ssh_account(user):
-    if subprocess.run(f"id {user}", shell=True, capture_output=True).returncode != 0:
+    if subprocess.run(["id", user], shell=False, capture_output=True).returncode != 0:
         return False, f"❌ Utilisateur <code>{user}</code> introuvable."
-    subprocess.run(f"passwd -l {user}", shell=True, capture_output=True)
+    subprocess.run(["passwd", "-l", user], shell=False, capture_output=True)
     return True, f"🔒 <b>Compte <code>{user}</code> verrouillé.</b>"
 
 
 def unlock_ssh_account(user):
-    if subprocess.run(f"id {user}", shell=True, capture_output=True).returncode != 0:
+    if subprocess.run(["id", user], shell=False, capture_output=True).returncode != 0:
         return False, f"❌ Utilisateur <code>{user}</code> introuvable."
-    subprocess.run(f"passwd -u {user}", shell=True, capture_output=True)
+    subprocess.run(["passwd", "-u", user], shell=False, capture_output=True)
     return True, f"🔓 <b>Compte <code>{user}</code> déverrouillé.</b>"
 
 
@@ -187,12 +206,12 @@ def list_ssh_accounts():
 
     msg = "📋 <b>LISTE DES COMPTES SSH:</b>\n\n"
     for user in users:
-        exp_cmd = f"chage -l {user} | grep 'Account expires' | awk -F': ' '{{print $2}}'"
+        exp_cmd = f"chage -l {shlex.quote(user)} | grep 'Account expires' | awk -F': ' '{{print $2}}'"
         exp_date = (
             subprocess.run(exp_cmd, shell=True, capture_output=True, text=True)
             .stdout.strip()
         )
-        status_cmd = f"passwd -S {user} | awk '{{print $2}}'"
+        status_cmd = f"passwd -S {shlex.quote(user)} | awk '{{print $2}}'"
         status = (
             subprocess.run(status_cmd, shell=True, capture_output=True, text=True)
             .stdout.strip()
@@ -201,3 +220,4 @@ def list_ssh_accounts():
         msg += f"{lock_icon} <code>{user}</code> | Exp: <i>{exp_date}</i>\n"
     msg += f"\n📊 <b>Total:</b> {len(users)} compte(s)"
     return msg
+

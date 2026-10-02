@@ -1,39 +1,43 @@
 #!/bin/bash
 
-# Script de configuration de la bannière SSH depuis le dépôt Clone-THE_S-TUNNEL-44
-# Cette bannière s'affiche lors de la connexion SSH/SlowDNS
+set -e
 
-SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
-BANNER_FILE="/etc/ssh/banner.issue.net"
+BANNER_FILE="/etc/ssh/banner"
+BANNER_URL="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main/issue.net"
+SSHD_CONFIG="/etc/ssh/sshd_config"
 
-echo "[*] Téléchargement de la bannière SSH depuis le dépôt officiel..."
-
-# Créer le répertoire si nécessaire
 mkdir -p /etc/ssh
 
-# Télécharger UNIQUEMENT la bannière depuis le dépôt Clone-THE_S-TUNNEL-44
-wget -q -O "$BANNER_FILE" "$SERVER_HOST/issue.net"
+echo "[*] Téléchargement de la bannière SSH..."
+if ! wget -q -O "$BANNER_FILE" "$BANNER_URL"; then
+    echo "[-] Impossible de télécharger la bannière, création d'une bannière locale par défaut"
+    cat > "$BANNER_FILE" <<'EOF'
+╔════════════════════════════════════════════════════════════════╗
+║              🜲 THE_S TUNNEL PRO - SSH ACCESS                  ║
+╚════════════════════════════════════════════════════════════════╝
 
-if [ -f "$BANNER_FILE" ]; then
-    echo "[+] Bannière téléchargée avec succès"
-    
-    # Configurer SSH pour afficher la bannière
-    sed -i '/^#Banner/c\Banner \/etc\/ssh\/banner.issue.net' /etc/ssh/sshd_config
-    sed -i '/^Banner/c\Banner \/etc\/ssh\/banner.issue.net' /etc/ssh/sshd_config
-    
-    # S'assurer que la configuration existe
-    if ! grep -q "Banner /etc/ssh/banner.issue.net" /etc/ssh/sshd_config; then
-        echo "Banner /etc/ssh/banner.issue.net" >> /etc/ssh/sshd_config
-    fi
-    
-    # Permissions appropriées
-    chmod 644 "$BANNER_FILE"
-    
-    # Redémarrer SSH
-    systemctl restart ssh
-    
-    echo "[+] Bannière SSH configurée et activée"
+Welcome to THE_S Tunnel Pro SSH Service
+All activities are monitored and logged
+Unauthorized access is prohibited
+EOF
+fi
+
+chmod 644 "$BANNER_FILE"
+if [ -f "${SSHD_CONFIG}.backup" ]; then
+    cp "${SSHD_CONFIG}.backup" "$SSHD_CONFIG"
+fi
+cp "$SSHD_CONFIG" "${SSHD_CONFIG}.backup" 2>/dev/null || true
+
+sed -i '/^Banner/d' "$SSHD_CONFIG"
+if ! grep -q "^Banner " "$SSHD_CONFIG"; then
+    printf '\nBanner %s\n' "$BANNER_FILE" >> "$SSHD_CONFIG"
+fi
+
+if sshd -t >/dev/null 2>&1; then
+    systemctl restart ssh >/dev/null 2>&1 || service ssh restart >/dev/null 2>&1 || true
+    echo "[+] Bannière SSH configurée"
 else
-    echo "[-] ERREUR: Impossible de télécharger la bannière depuis $SERVER_HOST/issue.net"
+    echo "[-] Configuration SSH invalide, restauration de la sauvegarde"
+    cp "${SSHD_CONFIG}.backup" "$SSHD_CONFIG"
     exit 1
 fi

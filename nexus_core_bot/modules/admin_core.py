@@ -1,7 +1,7 @@
 import json
 import os
 
-CONFIG_FILE = "/etc/the_s_bot/config.json"
+CONFIG_FILE = "/etc/nexus_bot/config.json"
 
 
 def get_config():

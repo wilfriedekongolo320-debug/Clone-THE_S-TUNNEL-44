@@ -3,6 +3,8 @@
 #  THE_S TUNNEL PRO - MAIN INSTALLER (Cyberpunk Theme)
 # ============================================================
 
+set -u
+
 # --- VÉRIFICATION ROOT ---
 if [ "$EUID" -ne 0 ]; then
     echo "❌ ERREUR: Ce script doit être exécuté en tant que ROOT."
@@ -91,9 +93,9 @@ prepare_env() {
 
 function show_tns() {
     clear
-    echo -e "${C_MAGENTA}╔════════════════════════════════════════════════════════[...]"
+    echo -e "${C_MAGENTA}╔═══════════════════════════════════════════════════════════════════════╗${C_RESET}"
     echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ CONDITIONS D'UTILISATION - THE_S TUNNEL PRO${C_RESET}               ${C_MAGENTA}║${C_RESET}"
-    echo -e "${C_MAGENTA}╚════════════════════════════════════════════════════════[...]"
+    echo -e "${C_MAGENTA}╚═══════════════════════════════════════════════════════════════════════╝${C_RESET}"
     echo ""
     echo -e "  ${C_GOLD}Bienvenue dans les services 🜲 THE_S TUNNEL PRO !${C_RESET}"
     echo ""
@@ -104,10 +106,10 @@ function show_tns() {
     echo -e "  ${C_GRAY}[*] Vous devez respecter les lois locales en vigueur.${C_RESET}"
     echo -e "  ${C_GRAY}[*] Termes modifiables sans préavis.${C_RESET}"
     echo ""
-    echo -e "${C_CYAN}──────────────────────────────────────────────────────────[...]"
+    echo -e "${C_CYAN}──────────────────────────────────────────────────────────────────────${C_RESET}"
     echo -e "  ${C_GREEN}[01] • Accepter les termes${C_RESET}"
     echo -e "  ${C_RED}[02] • Décliner et Quitter${C_RESET}"
-    echo -e "${C_CYAN}──────────────────────────────────────────────────────────[...]"
+    echo -e "${C_CYAN}──────────────────────────────────────────────────────────────────────${C_RESET}"
     echo ""
     read -rp "  🜲 Sélectionnez une option [01-02] : " opt
     echo ""
@@ -139,9 +141,9 @@ function show_tns() {
 
 function add_domain() {
     clear
-    echo -e "${C_MAGENTA}╔═══════════════════════════════════════════════════════��[...]"
+    echo -e "${C_MAGENTA}╔═══════════════════════════════════════════════════════════════════════╗${C_RESET}"
     echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_CYAN}❖ CONFIGURATION DU DOMAINE${C_RESET}                                      ${C_MAGENTA}║${C_RESET}"
-    echo -e "${C_MAGENTA}╚═══════════════════════════════════════════════════════��[...]"
+    echo -e "${C_MAGENTA}╚═══════════════════════════════════════════════════════════════════════╝${C_RESET}"
     echo ""
 
     while true; do
@@ -156,16 +158,16 @@ function add_domain() {
             break
         else
             clear
-            echo -e "${C_MAGENTA}╔═════════════════════════════════════════════════════[...]"
+            echo -e "${C_MAGENTA}╔═══════════════════════════════════════════════════════════════════════╗${C_RESET}"
             echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_RED}✖ ERREUR DE POINTEUR DNS${C_RESET}                                          ${C_MAGENTA}║${C_RESET}"
-            echo -e "${C_MAGENTA}╚═════════════════════════════════════════════════════[...]"
+            echo -e "${C_MAGENTA}╚═══════════════════════════════════════════════════════════════════════╝${C_RESET}"
             echo ""
             echo -e "  ${C_RED}Le domaine ne pointe pas vers cette adresse VPS !${C_RESET}"
             echo -e "  ${C_WHITE}Résolution du domaine :${C_RESET} ${C_GOLD}$domain_ip${C_RESET}"
             echo -e "  ${C_WHITE}Adresse IP publique   :${C_RESET} ${C_GREEN}$MYIP${C_RESET}"
             echo ""
             echo -e "  ${C_GRAY}Corrigez vos enregistrements DNS (A Record) puis réessayez.${C_RESET}"
-            echo -e "${C_CYAN}───────────────────────────────────────────────────────[...]"
+            echo -e "${C_CYAN}──────────────────────────────────────────────────────────────────────${C_RESET}"
             echo ""
             read -n 1 -s -r -p "  Appuyez sur une touche pour réessayer..."
             add_domain
@@ -187,9 +189,9 @@ function add_domain() {
     fi
 
     clear
-    echo -e "${C_MAGENTA}╔═══════════════════════════════════════════════════════��[...]"
+    echo -e "${C_MAGENTA}╔═══════════════════════════════════════════════════════════════════════╗${C_RESET}"
     echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_GREEN}⚡ DOMAINE CONFIGURÉ AVEC SUCCÈS${C_RESET}                                ${C_MAGENTA}║${C_RESET}"
-    echo -e "${C_MAGENTA}╚═══════════════════════════════════════════════════════��[...]"
+    echo -e "${C_MAGENTA}╚═══════════════════════════════════════════════════════════════════════╝${C_RESET}"
     echo ""
     echo -e "  ${C_WHITE}Domaine actif :${C_RESET} ${C_CYAN}${domain}${C_RESET}"
     echo -e "  ${C_GRAY}AutoScript Xray par 🜲 THE_S Team${C_RESET}"
@@ -227,34 +229,110 @@ install_packages() {
     fi
 }
 
+install_nodejs() {
+    local node_major=0
+
+    if command -v node >/dev/null 2>&1; then
+        node_major=$(node -p "process.versions.node.split('.')[0]" 2>/dev/null || echo 0)
+        if [ "$node_major" -ge 18 ]; then
+            echo -e "  ${C_GREEN}[OK] Node.js $(node --version) déjà installé.${C_RESET}"
+            return 0
+        fi
+    fi
+
+    echo -e "  ${C_CYAN}[INFO] Installation de Node.js 20.x pour le panel web...${C_RESET}"
+    if ! curl -fsSL https://deb.nodesource.com/setup_20.x | bash -; then
+        echo -e "  ${C_RED}[ERREUR] Impossible d'ajouter le dépôt NodeSource.${C_RESET}"
+        exit 1
+    fi
+
+    if ! apt-get install -y nodejs npm; then
+        echo -e "  ${C_RED}[ERREUR] Impossible d'installer Node.js/npm.${C_RESET}"
+        exit 1
+    fi
+
+    echo -e "  ${C_GREEN}[OK] Node.js $(node --version) installé.${C_RESET}"
+}
+
+install_nexus_web() {
+    echo -e "  ${C_CYAN}[INFO] Installation du panel Nexus Tunnel Web...${C_RESET}"
+
+    local source_dir=""
+    if [ -d "$(pwd)/nexus-web" ] && [ -f "$(pwd)/nexus-web/install.sh" ]; then
+        source_dir="$(pwd)/nexus-web"
+    elif [ -d "/opt/nexus-tunnel-web" ] && [ -f "/opt/nexus-tunnel-web/install.sh" ]; then
+        source_dir="/opt/nexus-tunnel-web"
+    else
+        local tmp_dir
+        tmp_dir=$(mktemp -d)
+        if ! git clone --depth 1 "https://github.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44.git" "$tmp_dir/repo" >/dev/null 2>&1; then
+            echo -e "  ${C_RED}[ERREUR] Impossible de cloner le dépôt pour installer le panel web.${C_RESET}"
+            rm -rf "$tmp_dir"
+            exit 1
+        fi
+        source_dir="$tmp_dir/repo/nexus-web"
+    fi
+
+    if [ ! -f "$source_dir/install.sh" ]; then
+        echo -e "  ${C_RED}[ERREUR] Script d'installation du panel web introuvable dans $source_dir.${C_RESET}"
+        exit 1
+    fi
+
+    if ! bash "$source_dir/install.sh"; then
+        echo -e "  ${C_RED}[ERREUR] L'installation du panel web a échoué.${C_RESET}"
+        exit 1
+    fi
+
+    echo -e "  ${C_GREEN}[OK] Panel Nexus Tunnel Web installé.${C_RESET}"
+}
+
 run_scripts() {
     scripts=("sshws.sh" "xray.sh" "vpn.sh" "websocket.sh" "setup_zivpn.sh" "setup_dns.sh" "setup_udp.sh" "validator.sh")
     for script in "${scripts[@]}"; do
         url="${SERVER_HOST}/core/${script}"
         echo -e "  ${C_CYAN}[INFO] Téléchargement de $script...${C_RESET}"
-        if wget -q "$url" -O "$script"; then
-            chmod +x "$script"
-            echo -e "  ${C_GREEN}[INFO] Exécution de $script...${C_RESET}"
-            ./$script
-        else
+        if ! wget -q "$url" -O "$script"; then
             echo -e "  ${C_RED}[ERREUR] Impossible de télécharger $script depuis $url${C_RESET}"
+            exit 1
+        fi
+        chmod +x "$script"
+        echo -e "  ${C_GREEN}[INFO] Exécution de $script...${C_RESET}"
+        if ! ./$script; then
+            echo -e "  ${C_RED}[ERREUR] Échec lors de l'exécution de $script${C_RESET}"
+            exit 1
         fi
     done
 }
 
 install_menu() {
     echo -e "  ${C_CYAN}[INFO] Téléchargement des commandes du menu...${C_RESET}"
+    local failed=0
     for script in dns zivpn expiry domain iptools menu socks ssh status trojan vless vmess netguard port log tgbot uninstall update web fastdns; do
-        wget -q -O "/usr/local/sbin/$script" "${SERVER_HOST}/menu/${script}.sh"
+        if ! wget -q -O "/usr/local/sbin/$script" "${SERVER_HOST}/menu/${script}.sh"; then
+            echo -e "  ${C_RED}[ERREUR] Téléchargement du menu $script impossible.${C_RESET}"
+            failed=1
+            continue
+        fi
         chmod +x "/usr/local/sbin/$script"
     done
+
+    if [ "$failed" -ne 0 ]; then
+        echo -e "  ${C_RED}[ERREUR] L'un des scripts du menu n'a pas pu être téléchargé.${C_RESET}"
+        exit 1
+    fi
 }
 
 setup_ssh_banner() {
     echo -e "  ${C_CYAN}[INFO] Configuration de la bannière SSH...${C_RESET}"
-    wget -q -O /etc/ssh/setup_ssh_banner.sh "${SERVER_HOST}/core/setup_ssh_banner.sh"
+    if ! wget -q -O /etc/ssh/setup_ssh_banner.sh "${SERVER_HOST}/core/setup_ssh_banner.sh"; then
+        echo -e "  ${C_RED}[ERREUR] Impossible de télécharger le script de banner SSH.${C_RESET}"
+        exit 1
+    fi
     chmod +x /etc/ssh/setup_ssh_banner.sh
-    bash /etc/ssh/setup_ssh_banner.sh
+    if ! bash /etc/ssh/setup_ssh_banner.sh; then
+        echo -e "  ${C_RED}[ERREUR] Le script de banner SSH a échoué.${C_RESET}"
+        exit 1
+    fi
 }
 
 setup_autoreboot() {
@@ -333,15 +411,15 @@ doty_completed() {
     domain=$(cat /etc/xray/domain 2>/dev/null || echo "N/A")
     MYIP=$(wget -qO- ipv4.icanhazip.com 2>/dev/null || echo "127.0.0.1")
 
-    echo -e "${C_MAGENTA}╔═══════════════════════════════════════════════════════��[...]"
+    echo -e "${C_MAGENTA}╔═══════════════════════════════════════════════════════════════════════╗${C_RESET}"
     echo -e "${C_MAGENTA}║${C_RESET} ${C_BOLD}${C_GREEN}⚡ INSTALLATION TERMINÉE DE THE_S TUNNEL PRO${C_RESET}                  ${C_MAGENTA}║${C_RESET}"
-    echo -e "${C_MAGENTA}╠═══════════════════════════════════════════════════════��[...]"
+    echo -e "${C_MAGENTA}╠═══════════════════════════════════════════════════════════════════════╣${C_RESET}"
     printf "${C_MAGENTA}║${C_RESET}  ${C_WHITE}%-15s${C_RESET} : ${C_CYAN}%-45s${C_RESET} ${C_MAGENTA}║${C_RESET}\n" "Domaine Active" "$domain"
     printf "${C_MAGENTA}║${C_RESET}  ${C_WHITE}%-15s${C_RESET} : ${C_GREEN}%-45s${C_RESET} ${C_MAGENTA}║${C_RESET}\n" "IP Serveur VPS" "$MYIP"
-    echo -e "${C_MAGENTA}╠═══════════════════════════════════════════════════════��[...]"
+    echo -e "${C_MAGENTA}╠═══════════════════════════════════════════════════════════════════════╣${C_RESET}"
     echo -e "${C_MAGENTA}║${C_RESET} ${C_GOLD}Félicitations ! Votre serveur est prêt pour la production.${C_RESET}   ${C_MAGENTA}║${C_RESET}"
     echo -e "${C_MAGENTA}║${C_RESET} ${C_GRAY}AutoScript Xray par 🜲 THE_S Team${C_RESET}                                ${C_MAGENTA}║${C_RESET}"
-    echo -e "${C_MAGENTA}╚═══════════════════════════════════════════════════════��[...]"
+    echo -e "${C_MAGENTA}╚═══════════════════════════════════════════════════════════════════════╝${C_RESET}"
     echo ""
 }
 
@@ -366,10 +444,12 @@ main() {
     prepare_env
     update_system
     install_packages
+    install_nodejs
     show_tns
     run_scripts
     install_menu
     setup_ssh_banner
+    install_nexus_web
     setup_profile
     setup_autoreboot
     setup_autolog

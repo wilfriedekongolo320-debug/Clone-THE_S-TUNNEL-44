@@ -1,53 +1,118 @@
 #!/usr/bin/env python3
 """
-Vérifie que le token Telegram dans /etc/the_s_bot/config.json est valide.
-Retourne 0 si OK, code non-zero sinon.
+Commandes du Bot Telegram Nexus
+Gestion de toutes les commandes disponibles pour l'administrateur
 """
+
 import json
 import os
-import sys
-import requests
+import subprocess
+from datetime import datetime
 
-CONFIG = "/etc/the_s_bot/config.json"
+import telebot
+
+# Dictionnaire des commandes disponibles
+COMMANDS = {
+    '/start': 'Démarrer le bot et s\'authentifier',
+    '/status': 'Afficher le statut du serveur',
+    '/users': 'Liste des utilisateurs VPN',
+    '/add_user': 'Ajouter un nouvel utilisateur',
+    '/remove_user': 'Supprimer un utilisateur',
+    '/ssh_status': 'Statut du service SSH',
+    '/xray_status': 'Statut de Xray',
+    '/restart_services': 'Redémarrer tous les services',
+    '/server_info': 'Informations du serveur',
+    '/help': 'Afficher cette aide',
+}
 
 
 def load_config():
-    if not os.path.exists(CONFIG):
-        print(f"[ERROR] Fichier de configuration introuvable : {CONFIG}")
-        sys.exit(2)
-    with open(CONFIG, "r", encoding="utf-8") as f:
-        return json.load(f)
+    """Charger la configuration du bot"""
+    config_path = '/etc/nexus_bot/config.json'
+    if os.path.exists(config_path):
+        with open(config_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return {}
 
 
-def main():
-    cfg = load_config()
-    token = cfg.get("bot_token") or cfg.get("BOT_TOKEN")
-    if not token:
-        print("[ERROR] Clef 'bot_token' introuvable dans le fichier de configuration.")
-        sys.exit(2)
+def is_admin(user_id, config):
+    """Vérifier si l'utilisateur est administrateur"""
+    return user_id == config.get('super_admin') or user_id in config.get('admins', [])
 
-    url = f"https://api.telegram.org/bot{token}/getMe"
+
+def get_server_status():
+    """Récupérer le statut du serveur"""
     try:
-        r = requests.get(url, timeout=10)
-        r.raise_for_status()
-        data = r.json()
+        result = subprocess.run(
+            ['systemctl', 'status'],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+        )
+        return result.stdout
     except Exception as e:
-        print(f"[ERROR] Échec requête HTTP vers l'API Telegram : {e}")
-        sys.exit(3)
-
-    if not data.get("ok"):
-        print(f"[ERROR] Token invalide ou erreur API : {data}")
-        sys.exit(4)
-
-    result = data.get("result", {})
-    print("[OK] Token valide.")
-    print(
-        f"Bot id: {result.get('id')}, "
-        f"username: @{result.get('username')}, "
-        f"name: {result.get('first_name')}"
-    )
-    sys.exit(0)
+        return f"Erreur: {str(e)}"
 
 
-if __name__ == "__main__":
-    main()
+def format_help_message():
+    """Formater le message d'aide"""
+    msg = "📋 *Commandes Disponibles:*\n\n"
+    for cmd, desc in COMMANDS.items():
+        msg += f"`{cmd}` - {desc}\n"
+    return msg
+
+
+def format_status_message():
+    """Formater le message de statut"""
+    try:
+        services = ['ssh', 'xray', 'nginx']
+        msg = "🔍 *Statut du Serveur:*\n\n"
+
+        for service in services:
+            result = subprocess.run(
+                ['systemctl', 'is-active', service],
+                capture_output=True,
+                text=True,
+                timeout=5,
+                check=False,
+            )
+            status = "✅ Actif" if result.returncode == 0 else "❌ Arrêté"
+            msg += f"{service.upper()}: {status}\n"
+
+        with open('/proc/uptime', 'r', encoding='utf-8') as f:
+            uptime_seconds = int(float(f.readline().split()[0]))
+            days = uptime_seconds // 86400
+            hours = (uptime_seconds % 86400) // 3600
+            msg += f"\n⏱️ *Uptime:* {days}j {hours}h"
+
+        return msg
+    except Exception as e:
+        return f"❌ Erreur: {str(e)}"
+
+
+def format_server_info():
+    """Formater les infos du serveur"""
+    try:
+        msg = "ℹ️ *Informations du Serveur:*\n\n"
+
+        result = subprocess.run(['hostname'], capture_output=True, text=True, timeout=5, check=False)
+        msg += f"*Hostname:* `{result.stdout.strip()}`\n"
+
+        result = subprocess.run(['hostname', '-I'], capture_output=True, text=True, timeout=5, check=False)
+        msg += f"*IP Address:* `{result.stdout.strip()}`\n"
+
+        if os.path.exists('/etc/os-release'):
+            with open('/etc/os-release', 'r', encoding='utf-8') as f:
+                for line in f:
+                    if line.startswith('PRETTY_NAME'):
+                        os_name = line.split('=')[1].strip().strip('"')
+                        msg += f"*OS:* `{os_name}`\n"
+                        break
+
+        result = subprocess.run(['uname', '-r'], capture_output=True, text=True, timeout=5, check=False)
+        msg += f"*Kernel:* `{result.stdout.strip()}`\n"
+
+        return msg
+    except Exception as e:
+        return f"❌ Erreur: {str(e)}"

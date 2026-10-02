@@ -1,48 +1,257 @@
+import os
+import re
 import subprocess
-import psutil
+from datetime import datetime, timedelta
+
+META_DIR = "/etc/nexus_bot/zivpn_accounts"
+DB_FILE = "/etc/zivpn/user.db"
+CONF_FILE = "/etc/zivpn/config.json"
 
 
-def _run_command(args, timeout=10):
-    return subprocess.run(args, capture_output=True, text=True, timeout=timeout, check=False)
-
-
-def get_vps_status():
+def get_file(path, default="NON_DEFINI"):
     try:
-        uptime = _run_command(["uptime", "-p"], timeout=5)
-        if uptime.returncode != 0:
-            raise RuntimeError(uptime.stderr.strip() or "uptime command failed")
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read().strip()
+    except Exception:
+        return default
 
-        os_name = "Inconnu"
+
+def _get_public_ip():
+    for cmd in (
+        ["wget", "-qO-", "ipv4.icanhazip.com"],
+        ["curl", "-s", "ipv4.icanhazip.com"],
+        ["curl", "-s", "ifconfig.me"],
+    ):
         try:
-            with open("/etc/os-release", "r", encoding="utf-8") as f:
-                for line in f:
-                    if line.startswith("PRETTY_NAME="):
-                        os_name = line.split("=", 1)[1].strip().strip('"')
-                        break
-        except OSError:
-            os_name = "Inconnu"
-
-        cpu_usage = psutil.cpu_percent(interval=1)
-        ram = psutil.virtual_memory()
-        disk = psutil.disk_usage("/")
-
-        status_msg = (
-            f"📊 <b>ÉTAT DU SERVEUR NEXUS</b>\n\n"
-            f"🖥️ <b>OS:</b> <code>{os_name}</code>\n"
-            f"⏱️ <b>Uptime:</b> <code>{uptime.stdout.strip()}</code>\n"
-            f"⚙️ <b>CPU:</b> <code>{cpu_usage}%</code>\n"
-            f"💾 <b>RAM:</b> <code>{ram.percent}%</code> ({ram.used // (1024**2)}MB / {ram.total // (1024**2)}MB)\n"
-            f"💽 <b>Disque:</b> <code>{disk.percent}%</code> ({disk.used // (1024**3)}GB / {disk.total // (1024**3)}GB)\n"
-        )
-        return status_msg
-    except (OSError, RuntimeError, ValueError) as e:
-        return f"❌ Erreur de lecture système : {str(e)}"
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=10, check=False)
+            if result.returncode == 0 and result.stdout.strip():
+                return result.stdout.strip()
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            continue
+    return "N/A"
 
 
-def clean_system_logs():
+def create_zivpn_account(user, password, days, created_by_id=None):
+    if not os.path.exists(CONF_FILE):
+        return False, "❌ Fichier config ZIVPN introuvable. Le VPS est-il bien configuré ?"
+
     try:
-        _run_command(["journalctl", "--vacuum-time=1d"], timeout=30)
-        _run_command(["apt-get", "clean"], timeout=60)
-        return "🧹 <b>Logs et Cache nettoyés avec succès.</b>"
-    except subprocess.TimeoutExpired:
-        return "⚠️ <b>Nettoyage système annulé : délai dépassé.</b>"
+        with open(DB_FILE, "r", encoding="utf-8") as f:
+            content = f.read()
+            if user in content or password in content:
+                return False, "❌ Nom d'utilisateur ou Mot de passe déjà utilisé."
+    except Exception:
+        pass
+
+    days = int(days)
+    exp_date = (datetime.now() + timedelta(days=days)).strftime("%Y-%m-%d")
+
+    with open(CONF_FILE, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    new_lines = []
+    for line in lines:
+        new_lines.append(line)
+        if '"config": [' in line:
+            new_lines.append(f'      "{password}",\n')
+
+    with open(CONF_FILE, "w", encoding="utf-8") as f:
+        f.writelines(new_lines)
+
+    with open(CONF_FILE, "r", encoding="utf-8") as f:
+        raw = f.read()
+    raw = re.sub(r",(\s*\])", r"\1", raw)
+    with open(CONF_FILE, "w", encoding="utf-8") as f:
+        f.write(raw)
+
+    os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
+    with open(DB_FILE, "a", encoding="utf-8") as f:
+        f.write(f"{user} {password} {exp_date}\n")
+
+    subprocess.run(["systemctl", "restart", "zivpn"], capture_output=True, check=False)
+
+    os.makedirs(META_DIR, exist_ok=True)
+    with open(f"{META_DIR}/{user}.txt", "w", encoding="utf-8") as f:
+        f.write(
+            f"username={user}\n"
+            f"password={password}\n"
+            f"expiry={exp_date}\n"
+            f"createdById={created_by_id}\n"
+            f"createdAt={datetime.utcnow().isoformat()}Z\n"
+            f"protocol=zivpn\n"
+            f"status=active\n"
+        )
+
+    domain = get_file("/etc/xray/domain", "votre-domaine.com")
+    myip = _get_public_ip()
+
+    msg = (
+        f"┏━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
+        f"┃ <b>ZIVPN ACCOUNT DETAILS</b>\n"
+        f"┗━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n"
+        f"👤 <b>Username:</b> <code>{user}</code>\n"
+        f"🔑 <b>Password:</b> <code>{password}</code>\n"
+        f"⏳ <b>Expiry Date:</b> {exp_date}\n"
+        f"🖥️ <b>IPV4:</b> <code>{myip}</code>\n"
+        f"🌐 <b>Domain:</b> <code>{domain}</code>\n"
+        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    )
+    return True, msg
+
+
+def get_zivpn_usernames():
+    if not os.path.exists(META_DIR):
+        return []
+    return [
+        f.replace(".txt", "")
+        for f in sorted(os.listdir(META_DIR))
+        if f.endswith(".txt")
+    ]
+
+
+def get_zivpn_account_details(user):
+    meta_file = f"{META_DIR}/{user}.txt"
+    if not os.path.exists(meta_file):
+        return False, f"❌ Compte ZIVPN <code>{user}</code> introuvable."
+    data = {}
+    with open(meta_file, "r", encoding="utf-8") as f:
+        for line in f:
+            if "=" in line:
+                k, v = line.strip().split("=", 1)
+                data[k] = v
+    domain = get_file("/etc/xray/domain", "votre-domaine.com")
+    myip = _get_public_ip()
+    msg = (
+        f"┏━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
+        f"┃ <b>ZIVPN ACCOUNT DETAILS</b>\n"
+        f"┗━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n"
+        f"👤 <b>Username:</b> <code>{user}</code>\n"
+        f"🔑 <b>Password:</b> <code>{data.get('password', 'N/A')}</code>\n"
+        f"⏳ <b>Expiry Date:</b> {data.get('expiry', 'N/A')}\n"
+        f"🖥️ <b>IPV4:</b> <code>{myip}</code>\n"
+        f"🌐 <b>Domain:</b> <code>{domain}</code>\n"
+        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    )
+    return True, msg
+
+
+def renew_zivpn_account(user, days):
+    if not os.path.exists(DB_FILE):
+        return False, "❌ Base ZIVPN introuvable."
+
+    with open(DB_FILE, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    current_exp = None
+    new_lines = []
+    found = False
+    days = int(days)
+    new_exp = None
+
+    for line in lines:
+        parts = line.strip().split()
+        if len(parts) >= 3 and parts[0] == user:
+            current_exp = parts[2]
+            try:
+                base_date = datetime.strptime(current_exp, "%Y-%m-%d")
+                if base_date < datetime.now():
+                    base_date = datetime.now()
+            except ValueError:
+                base_date = datetime.now()
+            new_exp = (base_date + timedelta(days=days)).strftime("%Y-%m-%d")
+            new_lines.append(f"{parts[0]} {parts[1]} {new_exp}\n")
+            found = True
+        else:
+            new_lines.append(line)
+
+    if not found:
+        return False, f"❌ Utilisateur ZIVPN <code>{user}</code> introuvable."
+
+    with open(DB_FILE, "w", encoding="utf-8") as f:
+        f.writelines(new_lines)
+
+    meta_file = f"{META_DIR}/{user}.txt"
+    if os.path.exists(meta_file):
+        with open(meta_file, "r", encoding="utf-8") as f:
+            meta_lines = f.readlines()
+        with open(meta_file, "w", encoding="utf-8") as f:
+            for line in meta_lines:
+                if line.startswith("expiry="):
+                    f.write(f"expiry={new_exp}\n")
+                else:
+                    f.write(line)
+
+    ok, details = get_zivpn_account_details(user)
+    if ok:
+        header = (
+            f"✅ <b>COMPTE ZIVPN RENOUVELÉ</b>\n"
+            f"📅 <b>Ancienne expiration:</b> {current_exp} → <b>{new_exp}</b>\n\n"
+        )
+        return True, header + details
+    return True, (
+        f"✅ <b>COMPTE ZIVPN RENOUVELÉ</b>\n\n"
+        f"👤 <b>Username:</b> <code>{user}</code>\n"
+        f"📅 <b>Ancienne expiration:</b> {current_exp}\n"
+        f"➕ <b>Jours ajoutés:</b> {days}\n"
+        f"📅 <b>Nouvelle expiration:</b> {new_exp}\n"
+    )
+
+
+def delete_zivpn_account(user):
+    if not os.path.exists(DB_FILE):
+        return False, "❌ Base ZIVPN introuvable."
+
+    with open(DB_FILE, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    password = None
+    new_lines = []
+    for line in lines:
+        parts = line.strip().split()
+        if len(parts) >= 2 and parts[0] == user:
+            password = parts[1]
+        else:
+            new_lines.append(line)
+
+    if password is None:
+        return False, f"❌ Utilisateur ZIVPN <code>{user}</code> introuvable."
+
+    with open(DB_FILE, "w", encoding="utf-8") as f:
+        f.writelines(new_lines)
+
+    if os.path.exists(CONF_FILE):
+        with open(CONF_FILE, "r", encoding="utf-8") as f:
+            content = f.read()
+        content = re.sub(rf'[ \t]*"{re.escape(password)}",?\n?', "", content)
+        content = re.sub(r",(\s*\])", r"\1", content)
+        with open(CONF_FILE, "w", encoding="utf-8") as f:
+            f.write(content)
+
+    subprocess.run(["systemctl", "restart", "zivpn"], capture_output=True, check=False)
+
+    meta_file = f"{META_DIR}/{user}.txt"
+    if os.path.exists(meta_file):
+        os.remove(meta_file)
+
+    return True, f"🗑️ <b>Compte ZIVPN <code>{user}</code> supprimé avec succès.</b>"
+
+
+def list_zivpn_accounts():
+    if not os.path.exists(DB_FILE):
+        return "📋 Aucun compte ZIVPN trouvé."
+
+    with open(DB_FILE, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    if not lines:
+        return "📋 Aucun compte ZIVPN trouvé."
+
+    msg = "📋 <b>LISTE DES COMPTES ZIVPN:</b>\n\n"
+    count = 0
+    for line in lines:
+        parts = line.strip().split()
+        if len(parts) >= 3:
+            msg += f"👤 <code>{parts[0]}</code> | Pass: <code>{parts[1]}</code> | Exp: <i>{parts[2]}</i>\n"
+            count += 1
+    msg += f"\n📊 <b>Total:</b> {count} compte(s)"
+    return msg

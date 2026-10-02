@@ -1,192 +1,248 @@
+import uuid
+import base64
 import subprocess
+from datetime import datetime, timedelta
 import os
 import re
-from datetime import datetime, timedelta
 
-META_DIR = "/etc/nexus_bot/zivpn_accounts"
-DB_FILE = "/etc/zivpn/user.db"
-CONF_FILE = "/etc/zivpn/config.json"
+XRAY_CONF = "/etc/xray/config.json"
+DB_DIR = "/etc/nexus_bot/xray_accounts"
+
+MARKERS = {
+    "vless": ["#vless", "#vlessws", "#vlessgrpc", "# vless"],
+    "vmess": ["#vmess", "#vmessws", "#vmessgrpc", "# vmess"],
+    "trojan": ["#trojanws", "#trojangrpc", "#trojan", "# trojan"],
+    "socks": ["#socks", "# socks"],
+}
 
 
-def get_file(path, default="NON_DEFINI"):
+def get_domain():
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open("/etc/xray/domain", "r", encoding="utf-8") as f:
             return f.read().strip()
     except Exception:
-        return default
+        return "votre-domaine.com"
 
 
-def _get_public_ip():
-    for cmd in (
-        "wget -qO- ipv4.icanhazip.com 2>/dev/null",
-        "curl -s ipv4.icanhazip.com",
-        "curl -s ifconfig.me",
-    ):
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-        if result.returncode == 0 and result.stdout.strip():
-            return result.stdout.strip()
-    return "N/A"
+def _build_links(protocol, user, client_id, domain):
+    if protocol == "vless":
+        link_tls = (
+            f"vless://{client_id}@{domain}:443?path=/vless&security=tls"
+            f"&encryption=none&type=ws#{user}"
+        )
+        link_ntls = (
+            f"vless://{client_id}@{domain}:80?path=/vless"
+            f"&encryption=none&type=ws#{user}"
+        )
+        link_grpc = (
+            f"vless://{client_id}@{domain}:443?mode=gun&security=tls"
+            f"&encryption=none&type=grpc&serviceName=vless-grpc#{user}"
+        )
+    elif protocol == "vmess":
+        ws_tls = (
+            f'{{"v":"2","ps":"{user}","add":"{domain}","port":"443","id":"{client_id}",'
+            f'"aid":"0","net":"ws","path":"/vmess","type":"none","host":"","tls":"tls"}}'
+        )
+        ws_ntls = (
+            f'{{"v":"2","ps":"{user}","add":"{domain}","port":"80","id":"{client_id}",'
+            f'"aid":"0","net":"ws","path":"/vmess","type":"none","host":"","tls":"none"}}'
+        )
+        grpc = (
+            f'{{"v":"2","ps":"{user}","add":"{domain}","port":"443","id":"{client_id}",'
+            f'"aid":"0","net":"grpc","path":"vmess-grpc","type":"none","host":"","tls":"tls"}}'
+        )
+        link_tls = "vmess://" + base64.b64encode(ws_tls.encode()).decode()
+        link_ntls = "vmess://" + base64.b64encode(ws_ntls.encode()).decode()
+        link_grpc = "vmess://" + base64.b64encode(grpc.encode()).decode()
+    elif protocol == "trojan":
+        link_tls = (
+            f"trojan://{client_id}@{domain}:443?path=/trws&security=tls"
+            f"&encryption=none&host={domain}&type=ws#{user}"
+        )
+        link_ntls = (
+            f"trojan://{client_id}@{domain}:80?path=/trws"
+            f"&encryption=none&security=none&host={domain}&type=ws#{user}"
+        )
+        link_grpc = (
+            f"trojan://{client_id}@{domain}:443?mode=gun&security=tls"
+            f"&type=grpc&serviceName=trojan-grpc&sni={domain}#{user}"
+        )
+    else:
+        link_tls = f"socks5://{user}:{client_id}@{domain}:1080"
+        link_ntls = link_tls
+        link_grpc = link_tls
+    return link_tls, link_ntls, link_grpc
 
 
-def create_zivpn_account(user, password, days, created_by_id=None):
-    if not os.path.exists(CONF_FILE):
-        return False, "❌ Fichier config ZIVPN introuvable. Le VPS est-il bien configuré ?"
+def _format_details(protocol, user, client_id, exp_date, domain):
+    link_tls, link_ntls, link_grpc = _build_links(protocol, user, client_id, domain)
+    return (
+        f"┏━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
+        f"┃ <b>{protocol.upper()} ACCOUNT DETAILS</b>\n"
+        f"┗━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n"
+        f"👤 <b>Username:</b> <code>{user}</code>\n"
+        f"⏳ <b>Expired:</b> <code>{exp_date}</code>\n"
+        f"🔑 <b>UUID/Pass:</b> <code>{client_id}</code>\n"
+        f"🌐 <b>Domain:</b> <code>{domain}</code>\n"
+        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        f"🔗 <b>TLS (443):</b>\n<code>{link_tls}</code>\n\n"
+        f"🔗 <b>NTLS (80):</b>\n<code>{link_ntls}</code>\n\n"
+        f"🔗 <b>GRPC (443):</b>\n<code>{link_grpc}</code>\n"
+        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    )
 
-    try:
-        with open(DB_FILE, "r", encoding="utf-8") as f:
-            content = f.read()
-            if user in content or password in content:
-                return False, "❌ Nom d'utilisateur ou Mot de passe déjà utilisé."
-    except Exception:
-        pass
+
+def create_xray_account(protocol, user, days, created_by_id=None):
+    if not os.path.exists(XRAY_CONF):
+        return False, "❌ Fichier config Xray introuvable (/etc/xray/config.json)."
 
     days = int(days)
     exp_date = (datetime.now() + timedelta(days=days)).strftime("%Y-%m-%d")
+    client_id = str(uuid.uuid4())
+    domain = get_domain()
 
-    with open(CONF_FILE, "r", encoding="utf-8") as f:
-        lines = f.readlines()
+    with open(XRAY_CONF, "r", encoding="utf-8") as f:
+        content = f.read()
 
-    new_lines = []
-    for line in lines:
-        new_lines.append(line)
-        if '"config": [' in line:
-            new_lines.append(f'      "{password}",\n')
+    tag_map = {
+        "vless": (
+            f'#& {user} {exp_date} {client_id}\n'
+            f'}},{{"id": "{client_id}","email": "{user}"\n'
+        ),
+        "vmess": (
+            f'### {user} {exp_date} {client_id}\n'
+            f'}},{{"id": "{client_id}","alterId": 0,"email": "{user}"\n'
+        ),
+        "trojan": (
+            f'#! {user} {exp_date} {client_id}\n'
+            f'}},{{"password": "{client_id}","email": "{user}"\n'
+        ),
+        "socks": (
+            f'## {user} {exp_date} {client_id}\n'
+            f'}},{{"user": "{user}","pass": "{client_id}"\n'
+        ),
+    }
 
-    with open(CONF_FILE, "w", encoding="utf-8") as f:
-        f.writelines(new_lines)
+    injected = False
+    for marker in MARKERS.get(protocol, []):
+        if marker in content:
+            content = content.replace(marker, marker + "\n" + tag_map[protocol], 1)
+            injected = True
+            break
 
-    with open(CONF_FILE, "r", encoding="utf-8") as f:
-        raw = f.read()
-    raw = re.sub(r",(\s*\])", r"\1", raw)
-    with open(CONF_FILE, "w", encoding="utf-8") as f:
-        f.write(raw)
+    if not injected:
+        return False, (
+            f"❌ Aucune balise trouvée pour {protocol.upper()}.\n"
+            f"Balises attendues : {', '.join(MARKERS.get(protocol, []))}\n"
+            f"Vérifie /etc/xray/config.json"
+        )
 
-    os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
-    with open(DB_FILE, "a", encoding="utf-8") as f:
-        f.write(f"{user} {password} {exp_date}\n")
+    with open(XRAY_CONF, "w", encoding="utf-8") as f:
+        f.write(content)
 
-    subprocess.run("systemctl restart zivpn", shell=True, capture_output=True)
+    subprocess.run(["systemctl", "restart", "xray"], capture_output=True, check=False)
 
-    os.makedirs(META_DIR, exist_ok=True)
-    with open(f"{META_DIR}/{user}.txt", "w", encoding="utf-8") as f:
+    os.makedirs(DB_DIR, exist_ok=True)
+    with open(f"{DB_DIR}/{protocol}_{user}.txt", "w", encoding="utf-8") as f:
         f.write(
             f"username={user}\n"
-            f"password={password}\n"
+            f"uuid={client_id}\n"
             f"expiry={exp_date}\n"
             f"createdById={created_by_id}\n"
             f"createdAt={datetime.utcnow().isoformat()}Z\n"
-            f"protocol=zivpn\n"
+            f"protocol={protocol}\n"
             f"status=active\n"
         )
 
-    domain = get_file("/etc/xray/domain", "votre-domaine.com")
-    myip = _get_public_ip()
-
-    msg = (
-        f"┏━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
-        f"┃ <b>ZIVPN ACCOUNT DETAILS</b>\n"
-        f"┗━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n"
-        f"👤 <b>Username:</b> <code>{user}</code>\n"
-        f"🔑 <b>Password:</b> <code>{password}</code>\n"
-        f"⏳ <b>Expiry Date:</b> {exp_date}\n"
-        f"🖥️ <b>IPV4:</b> <code>{myip}</code>\n"
-        f"🌐 <b>Domain:</b> <code>{domain}</code>\n"
-        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    )
-    return True, msg
+    return True, _format_details(protocol, user, client_id, exp_date, domain)
 
 
-def get_zivpn_usernames():
-    if not os.path.exists(META_DIR):
+def get_xray_usernames(protocol):
+    if not os.path.exists(DB_DIR):
         return []
+    prefix = f"{protocol}_"
     return [
-        f.replace(".txt", "")
-        for f in sorted(os.listdir(META_DIR))
-        if f.endswith(".txt")
+        f[len(prefix):].replace(".txt", "")
+        for f in sorted(os.listdir(DB_DIR))
+        if f.startswith(prefix) and f.endswith(".txt")
     ]
 
 
-def get_zivpn_account_details(user):
-    meta_file = f"{META_DIR}/{user}.txt"
-    if not os.path.exists(meta_file):
-        return False, f"❌ Compte ZIVPN <code>{user}</code> introuvable."
+def get_xray_account_details(protocol, user):
+    db_file = f"{DB_DIR}/{protocol}_{user}.txt"
+    if not os.path.exists(db_file):
+        return False, f"❌ Compte {protocol.upper()} <code>{user}</code> introuvable."
     data = {}
-    with open(meta_file, "r", encoding="utf-8") as f:
+    with open(db_file, "r", encoding="utf-8") as f:
         for line in f:
             if "=" in line:
                 k, v = line.strip().split("=", 1)
                 data[k] = v
-    domain = get_file("/etc/xray/domain", "votre-domaine.com")
-    myip = _get_public_ip()
-    msg = (
-        f"┏━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
-        f"┃ <b>ZIVPN ACCOUNT DETAILS</b>\n"
-        f"┗━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n"
-        f"👤 <b>Username:</b> <code>{user}</code>\n"
-        f"🔑 <b>Password:</b> <code>{data.get('password', 'N/A')}</code>\n"
-        f"⏳ <b>Expiry Date:</b> {data.get('expiry', 'N/A')}\n"
-        f"🖥️ <b>IPV4:</b> <code>{myip}</code>\n"
-        f"🌐 <b>Domain:</b> <code>{domain}</code>\n"
-        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    return True, _format_details(
+        protocol,
+        user,
+        data.get("uuid", "N/A"),
+        data.get("expiry", "N/A"),
+        get_domain(),
     )
-    return True, msg
 
 
-def renew_zivpn_account(user, days):
-    if not os.path.exists(DB_FILE):
-        return False, "❌ Base ZIVPN introuvable."
+def renew_xray_account(protocol, user, days):
+    db_file = f"{DB_DIR}/{protocol}_{user}.txt"
+    if not os.path.exists(db_file):
+        return False, f"❌ Compte {protocol.upper()} <code>{user}</code> introuvable."
 
-    with open(DB_FILE, "r", encoding="utf-8") as f:
-        lines = f.readlines()
-
-    current_exp = None
-    new_lines = []
-    found = False
     days = int(days)
-    new_exp = None
+    current_exp = None
+    lines_db = []
+    with open(db_file, "r", encoding="utf-8") as f:
+        lines_db = f.readlines()
+    for line in lines_db:
+        if line.startswith("expiry="):
+            current_exp = line.split("=", 1)[1].strip()
+            break
 
-    for line in lines:
-        parts = line.strip().split()
-        if len(parts) >= 3 and parts[0] == user:
-            current_exp = parts[2]
-            try:
-                base_date = datetime.strptime(current_exp, "%Y-%m-%d")
-                if base_date < datetime.now():
-                    base_date = datetime.now()
-            except ValueError:
-                base_date = datetime.now()
-            new_exp = (base_date + timedelta(days=days)).strftime("%Y-%m-%d")
-            new_lines.append(f"{parts[0]} {parts[1]} {new_exp}\n")
-            found = True
+    try:
+        base_date = (
+            datetime.strptime(current_exp, "%Y-%m-%d") if current_exp else datetime.now()
+        )
+        if base_date < datetime.now():
+            base_date = datetime.now()
+    except (ValueError, TypeError):
+        base_date = datetime.now()
+
+    new_exp = (base_date + timedelta(days=days)).strftime("%Y-%m-%d")
+
+    if os.path.exists(XRAY_CONF):
+        with open(XRAY_CONF, "r", encoding="utf-8") as f:
+            content = f.read()
+        content = re.sub(
+            rf"((?:#[&!]|###+)\s+{re.escape(user)}\s+)\S+(\s)",
+            rf"\g<1>{new_exp}\2",
+            content,
+        )
+        with open(XRAY_CONF, "w", encoding="utf-8") as f:
+            f.write(content)
+        subprocess.run(["systemctl", "restart", "xray"], capture_output=True, check=False)
+
+    new_db_lines = []
+    for line in lines_db:
+        if line.startswith("expiry="):
+            new_db_lines.append(f"expiry={new_exp}\n")
         else:
-            new_lines.append(line)
+            new_db_lines.append(line)
+    with open(db_file, "w", encoding="utf-8") as f:
+        f.writelines(new_db_lines)
 
-    if not found:
-        return False, f"❌ Utilisateur ZIVPN <code>{user}</code> introuvable."
-
-    with open(DB_FILE, "w", encoding="utf-8") as f:
-        f.writelines(new_lines)
-
-    meta_file = f"{META_DIR}/{user}.txt"
-    if os.path.exists(meta_file):
-        with open(meta_file, "r", encoding="utf-8") as f:
-            meta_lines = f.readlines()
-        with open(meta_file, "w", encoding="utf-8") as f:
-            for line in meta_lines:
-                if line.startswith("expiry="):
-                    f.write(f"expiry={new_exp}\n")
-                else:
-                    f.write(line)
-
-    ok, details = get_zivpn_account_details(user)
+    ok, details = get_xray_account_details(protocol, user)
     if ok:
         header = (
-            f"✅ <b>COMPTE ZIVPN RENOUVELÉ</b>\n"
+            f"✅ <b>COMPTE {protocol.upper()} RENOUVELÉ</b>\n"
             f"📅 <b>Ancienne expiration:</b> {current_exp} → <b>{new_exp}</b>\n\n"
         )
         return True, header + details
     return True, (
-        f"✅ <b>COMPTE ZIVPN RENOUVELÉ</b>\n\n"
+        f"✅ <b>COMPTE {protocol.upper()} RENOUVELÉ</b>\n\n"
         f"👤 <b>Username:</b> <code>{user}</code>\n"
         f"📅 <b>Ancienne expiration:</b> {current_exp}\n"
         f"➕ <b>Jours ajoutés:</b> {days}\n"
@@ -194,62 +250,60 @@ def renew_zivpn_account(user, days):
     )
 
 
-def delete_zivpn_account(user):
-    if not os.path.exists(DB_FILE):
-        return False, "❌ Base ZIVPN introuvable."
+def delete_xray_account(protocol, user):
+    if not os.path.exists(XRAY_CONF):
+        return False, "❌ Fichier config Xray introuvable."
 
-    with open(DB_FILE, "r", encoding="utf-8") as f:
+    with open(XRAY_CONF, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
-    password = None
     new_lines = []
+    skip_next = False
+    removed = False
     for line in lines:
-        parts = line.strip().split()
-        if len(parts) >= 2 and parts[0] == user:
-            password = parts[1]
-        else:
-            new_lines.append(line)
+        clean = line.strip()
+        if re.match(rf"^(?:#[&!]|###+)\s+{re.escape(user)}\s+", clean):
+            skip_next = True
+            removed = True
+            continue
+        if skip_next:
+            skip_next = False
+            continue
+        new_lines.append(line)
 
-    if password is None:
-        return False, f"❌ Utilisateur ZIVPN <code>{user}</code> introuvable."
+    if not removed:
+        return False, f"❌ Utilisateur <code>{user}</code> introuvable dans la config {protocol.upper()}."
 
-    with open(DB_FILE, "w", encoding="utf-8") as f:
+    with open(XRAY_CONF, "w", encoding="utf-8") as f:
         f.writelines(new_lines)
+    subprocess.run(["systemctl", "restart", "xray"], capture_output=True, check=False)
 
-    if os.path.exists(CONF_FILE):
-        with open(CONF_FILE, "r", encoding="utf-8") as f:
-            content = f.read()
-        content = re.sub(rf'[ \t]*"{re.escape(password)}",?\n?', "", content)
-        content = re.sub(r",(\s*\])", r"\1", content)
-        with open(CONF_FILE, "w", encoding="utf-8") as f:
-            f.write(content)
+    db_file = f"{DB_DIR}/{protocol}_{user}.txt"
+    if os.path.exists(db_file):
+        os.remove(db_file)
 
-    subprocess.run("systemctl restart zivpn", shell=True, capture_output=True)
-
-    meta_file = f"{META_DIR}/{user}.txt"
-    if os.path.exists(meta_file):
-        os.remove(meta_file)
-
-    return True, f"🗑️ <b>Compte ZIVPN <code>{user}</code> supprimé avec succès.</b>"
+    return True, f"🗑️ <b>Compte {protocol.upper()} <code>{user}</code> supprimé avec succès.</b>"
 
 
-def list_zivpn_accounts():
-    if not os.path.exists(DB_FILE):
-        return "📋 Aucun compte ZIVPN trouvé."
+def list_xray_accounts(protocol):
+    if not os.path.exists(DB_DIR):
+        return f"📋 Aucun compte {protocol.upper()} trouvé."
 
-    with open(DB_FILE, "r", encoding="utf-8") as f:
-        lines = f.readlines()
+    entries = [f for f in os.listdir(DB_DIR) if f.startswith(f"{protocol}_")]
+    if not entries:
+        return f"📋 Aucun compte {protocol.upper()} trouvé."
 
-    if not lines:
-        return "📋 Aucun compte ZIVPN trouvé."
-
-    msg = "📋 <b>LISTE DES COMPTES ZIVPN:</b>\n\n"
-    count = 0
-    for line in lines:
-        parts = line.strip().split()
-        if len(parts) >= 3:
-            msg += f"👤 <code>{parts[0]}</code> | Pass: <code>{parts[1]}</code> | Exp: <i>{parts[2]}</i>\n"
-            count += 1
-    msg += f"\n📊 <b>Total:</b> {count} compte(s)"
+    msg = f"📋 <b>LISTE DES COMPTES {protocol.upper()}:</b>\n\n"
+    for entry in sorted(entries):
+        user = entry[len(protocol) + 1:].replace(".txt", "")
+        expiry = "N/A"
+        try:
+            with open(f"{DB_DIR}/{entry}", encoding="utf-8") as f:
+                for line in f:
+                    if line.startswith("expiry="):
+                        expiry = line.split("=", 1)[1].strip()
+        except Exception:
+            pass
+        msg += f"👤 <code>{user}</code> | Exp: <i>{expiry}</i>\n"
+    msg += f"\n📊 <b>Total:</b> {len(entries)} compte(s)"
     return msg
-

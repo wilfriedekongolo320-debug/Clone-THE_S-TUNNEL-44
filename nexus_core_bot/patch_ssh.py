@@ -1,51 +1,48 @@
-#!/bin/bash
-
-# ✓ VÉRIFICATION ROOT - Le script doit être exécuté en tant que root
-if [ "$EUID" -ne 0 ]; then
-    echo "❌ ERREUR: Ce script doit être exécuté en tant que ROOT"
-    echo "   Utilisez: sudo bash autoinstall.sh"
-    exit 1
-fi
-
-clear
-echo -e "\e[36m====================================================\e[0m"
-echo -e "\e[36m    DÉMARRAGE DE L'INSTALLATION: 🜲THE_S TUNNEL PRO   \e[0m"
-echo -e "\e[36m====================================================\e[0m"
-
-# 1. Préparation des outils vitaux
-apt-get update -y >/dev/null 2>&1
-apt-get install -y wget curl >/dev/null 2>&1
-
-# 2. Correction réseau (Forçage IPv4 pour la stabilité)
-echo "[+] Optimisation des routes réseau..."
-echo "precedence ::ffff:0:0/96  100" >> /etc/gai.conf
-sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1
-sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1
-
-# 3. Téléchargement du Lanceur Principal
-SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
-echo "[+] Connexion au dépôt autonome Nexus..."
-
-# Télécharger nexus.sh depuis le dépôt raw avec délai et validation
-if ! wget -q --timeout=20 --tries=3 -O /root/nexus.sh "${SERVER_HOST}/nexus.sh"; then
-    echo "[-] ERREUR FATALE: Impossible de télécharger nexus.sh depuis ${SERVER_HOST}"
-    exit 1
-fi
-
-if [ ! -s /root/nexus.sh ]; then
-    echo "[-] ERREUR FATALE: fichier nexus.sh vide ou incomplet."
-    exit 1
-fi
-
-# 4. Exécution Sécurisée
-if [ -f /root/nexus.sh ]; then
-    echo "[+] Fichier noyau intercepté avec succès. Lancement..."
-    chmod +x /root/nexus.sh
-    bash /root/nexus.sh
-else
-    echo "[-] ERREUR FATALE: Impossible d'atteindre le dépôt GitHub."
-    exit 1
-fi
+import subprocess
+import psutil
 
 
-# no special formatting
+def _run_command(args, timeout=10):
+    return subprocess.run(args, capture_output=True, text=True, timeout=timeout, check=False)
+
+
+def get_vps_status():
+    try:
+        uptime = _run_command(["uptime", "-p"], timeout=5)
+        if uptime.returncode != 0:
+            raise RuntimeError(uptime.stderr.strip() or "uptime command failed")
+
+        os_name = "Inconnu"
+        try:
+            with open("/etc/os-release", "r", encoding="utf-8") as f:
+                for line in f:
+                    if line.startswith("PRETTY_NAME="):
+                        os_name = line.split("=", 1)[1].strip().strip('"')
+                        break
+        except OSError:
+            os_name = "Inconnu"
+
+        cpu_usage = psutil.cpu_percent(interval=1)
+        ram = psutil.virtual_memory()
+        disk = psutil.disk_usage("/")
+
+        status_msg = (
+            f"📊 <b>ÉTAT DU SERVEUR NEXUS</b>\n\n"
+            f"🖥️ <b>OS:</b> <code>{os_name}</code>\n"
+            f"⏱️ <b>Uptime:</b> <code>{uptime.stdout.strip()}</code>\n"
+            f"⚙️ <b>CPU:</b> <code>{cpu_usage}%</code>\n"
+            f"💾 <b>RAM:</b> <code>{ram.percent}%</code> ({ram.used // (1024**2)}MB / {ram.total // (1024**2)}MB)\n"
+            f"💽 <b>Disque:</b> <code>{disk.percent}%</code> ({disk.used // (1024**3)}GB / {disk.total // (1024**3)}GB)\n"
+        )
+        return status_msg
+    except (OSError, RuntimeError, ValueError) as e:
+        return f"❌ Erreur de lecture système : {str(e)}"
+
+
+def clean_system_logs():
+    try:
+        _run_command(["journalctl", "--vacuum-time=1d"], timeout=30)
+        _run_command(["apt-get", "clean"], timeout=60)
+        return "🧹 <b>Logs et Cache nettoyés avec succès.</b>"
+    except subprocess.TimeoutExpired:
+        return "⚠️ <b>Nettoyage système annulé : délai dépassé.</b>"

@@ -8,7 +8,7 @@ RD='\e[31m'
 GR='\e[32m'
 
 echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-echo -e "${LN}┃${NC} ${BG}           INSTALLATION DE NEXUS BOT            ${NC} ${LN}┃${NC}"
+echo -e "${LN}┃${NC} ${BG}           INSTALLATION DE THE_S BOT            ${NC} ${LN}┃${NC}"
 echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
 echo -e ""
 echo -e " Ce module va relier votre serveur à Telegram."

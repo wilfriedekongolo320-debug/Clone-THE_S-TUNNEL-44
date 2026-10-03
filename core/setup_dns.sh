@@ -57,12 +57,6 @@ install_slowdns() {
     echo -e "  ${CY}►${NC} ${WH}Configure SlowDNS Nameserver${NC}"
     echo
 
-    # --- RÉCUPÉRATION DU DOMAINE NS ---
-    # 1. Vérifie si le domaine a été passé en paramètre $1
-    # 2. Sinon, lit dans /etc/slowdns/nsdomain ou /root/nsdomain
-    # 3. Sinon, demande la saisie (si terminal interactif)
-    # 4. En dernier recours non-interactif, attribue une valeur par défaut
-
     Nameserver="$1"
 
     if [[ -z "$Nameserver" && -f /etc/slowdns/nsdomain ]]; then
@@ -73,7 +67,6 @@ install_slowdns() {
         Nameserver=$(cat /root/nsdomain | tr -d '\r\n')
     fi
 
-    # Si le domaine est toujours vide et que le terminal est interactif
     if [[ -z "$Nameserver" && -t 0 ]]; then
         while true; do
             echo -ne "  ${YL}[ NS DOMAIN ]${NC} ${GN}›${NC} "
@@ -87,7 +80,6 @@ install_slowdns() {
         done
     fi
 
-    # Sécurité globale : si aucune saisie n'a pu avoir lieu (mode non-interactif sans fichier)
     if [[ -z "$Nameserver" ]]; then
         MY_IP=$(wget -qO- ipv4.icanhazip.com || echo "127.0.0.1")
         Nameserver="ns.${MY_IP}.nip.io"

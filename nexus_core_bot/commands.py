@@ -1,12 +1,34 @@
 import os
 import re
+import json
 import subprocess
 from datetime import datetime, timedelta
+from cryptography.fernet import Fernet
 
 META_DIR = "/etc/nexus_bot/zivpn_accounts"
 DB_FILE = "/etc/zivpn/user.db"
 CONF_FILE = "/etc/zivpn/config.json"
+KEY_FILE = "/etc/nexus_bot/.secret.key"
 
+def ensure_key():
+    os.makedirs("/etc/nexus_bot", exist_ok=True)
+    if not os.path.exists(KEY_FILE):
+        key = Fernet.generate_key()
+        with open(KEY_FILE, "wb") as f:
+            f.write(key)
+    with open(KEY_FILE, "rb") as f:
+        return f.read()
+
+FERNET = Fernet(ensure_key())
+
+def encrypt_value(value):
+    return FERNET.encrypt(value.encode("utf-8")).decode("utf-8")
+
+def decrypt_value(value):
+    try:
+        return FERNET.decrypt(value.encode("utf-8")).decode("utf-8")
+    except Exception:
+        return value
 
 def get_file(path, default="NON_DEFINI"):
     try:
@@ -14,7 +36,6 @@ def get_file(path, default="NON_DEFINI"):
             return f.read().strip()
     except Exception:
         return default
-
 
 def _get_public_ip():
     for cmd in (
@@ -29,7 +50,6 @@ def _get_public_ip():
         except (FileNotFoundError, subprocess.TimeoutExpired):
             continue
     return "N/A"
-
 
 def create_zivpn_account(user, password, days, created_by_id=None):
     if not os.path.exists(CONF_FILE):
@@ -74,7 +94,7 @@ def create_zivpn_account(user, password, days, created_by_id=None):
     with open(f"{META_DIR}/{user}.txt", "w", encoding="utf-8") as f:
         f.write(
             f"username={user}\n"
-            f"password={password}\n"
+            f"password={encrypt_value(password)}\n"
             f"expiry={exp_date}\n"
             f"createdById={created_by_id}\n"
             f"createdAt={datetime.utcnow().isoformat()}Z\n"
@@ -98,17 +118,6 @@ def create_zivpn_account(user, password, days, created_by_id=None):
     )
     return True, msg
 
-
-def get_zivpn_usernames():
-    if not os.path.exists(META_DIR):
-        return []
-    return [
-        f.replace(".txt", "")
-        for f in sorted(os.listdir(META_DIR))
-        if f.endswith(".txt")
-    ]
-
-
 def get_zivpn_account_details(user):
     meta_file = f"{META_DIR}/{user}.txt"
     if not os.path.exists(meta_file):
@@ -119,21 +128,24 @@ def get_zivpn_account_details(user):
             if "=" in line:
                 k, v = line.strip().split("=", 1)
                 data[k] = v
+
     domain = get_file("/etc/xray/domain", "votre-domaine.com")
     myip = _get_public_ip()
+    raw_password = data.get("password", "N/A")
+    password = decrypt_value(raw_password) if raw_password != "N/A" else "N/A"
+
     msg = (
         f"┏━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
         f"┃ <b>ZIVPN ACCOUNT DETAILS</b>\n"
         f"┗━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n"
         f"👤 <b>Username:</b> <code>{user}</code>\n"
-        f"🔑 <b>Password:</b> <code>{data.get('password', 'N/A')}</code>\n"
+        f"🔑 <b>Password:</b> <code>{password}</code>\n"
         f"⏳ <b>Expiry Date:</b> {data.get('expiry', 'N/A')}\n"
         f"🖥️ <b>IPV4:</b> <code>{myip}</code>\n"
         f"🌐 <b>Domain:</b> <code>{domain}</code>\n"
         f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     )
     return True, msg
-
 
 def renew_zivpn_account(user, days):
     if not os.path.exists(DB_FILE):
@@ -196,7 +208,6 @@ def renew_zivpn_account(user, days):
         f"📅 <b>Nouvelle expiration:</b> {new_exp}\n"
     )
 
-
 def delete_zivpn_account(user):
     if not os.path.exists(DB_FILE):
         return False, "❌ Base ZIVPN introuvable."
@@ -234,7 +245,6 @@ def delete_zivpn_account(user):
         os.remove(meta_file)
 
     return True, f"🗑️ <b>Compte ZIVPN <code>{user}</code> supprimé avec succès.</b>"
-
 
 def list_zivpn_accounts():
     if not os.path.exists(DB_FILE):

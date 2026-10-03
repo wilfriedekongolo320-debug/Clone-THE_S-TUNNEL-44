@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 echo "[INFO] Checking for nodejs/tmux..."
 if ! command -v node >/dev/null 2>&1; then
@@ -15,7 +15,6 @@ if [[ ! -f "$PROXY_JS" ]]; then
     chmod 644 "$PROXY_JS"
 fi
 
-# Vérifier si les ports 80/700 sont libres
 if ss -lnt | awk '{print $4}' | grep -q ':80$'; then
     echo "[WARN] Port 80 already in use; using 8080 instead"
     SSH_WS_PORT=8080

@@ -1,46 +1,72 @@
-cat << 'EOF' > /root/nexus.sh
 #!/bin/bash
 clear
+
 export LN='\033[34m'
 export BG='\033[44m'
 export NC='\033[0m'
 export GR='\033[32m'
 export RD='\033[31m'
-export MYIP=$(wget -qO- ipv4.icanhazip.com || ip route get 1.1.1.1 2>/dev/null | grep -oP 'src \K\S+' || echo "127.0.0.1")
+export YL='\033[33m'
 
-# --- CONFIGURATION DU DÉPÔT CENTRAL ---
+export MYIP=$(
+    wget -qO- ipv4.icanhazip.com 2>/dev/null ||
+    ip route get 1.1.1.1 2>/dev/null | grep -oP 'src \K\S+' ||
+    echo "127.0.0.1"
+)
+
 readonly GITHUB_USER="wilfriedekongolo320-debug"
 readonly GITHUB_REPO="Clone-THE_S-TUNNEL-44"
 readonly GITHUB_BRANCH="main"
 readonly SERVER_HOST="https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}"
 readonly TIMEZONE="Africa/Douala"
+readonly LOG_FILE="/var/log/nexus_install.log"
+
+mkdir -p "$(dirname "$LOG_FILE")"
+echo "=== Installation Nexus Tunnel - $(date) ===" >> "$LOG_FILE"
+
+log_info() { echo -e "${LN}[INFO]${NC} $1" | tee -a "$LOG_FILE"; }
+log_error() { echo -e "${RD}[ERROR]${NC} $1" | tee -a "$LOG_FILE"; }
+log_success() { echo -e "${GR}[SUCCESS]${NC} $1" | tee -a "$LOG_FILE"; }
+log_warn() { echo -e "${YL}[WARN]${NC} $1" | tee -a "$LOG_FILE"; }
 
 check_os() {
+    log_info "Vérification du système..."
     if [ -f /etc/os-release ]; then
         . /etc/os-release
         if [[ "$ID" == "ubuntu" || "$ID" == "debian" ]]; then
-            return 0  
+            log_success "OS supporté: $ID"
+            return 0
         else
-            echo -e "${RD}Système non supporté: $ID. Arrêt.${NC}"
+            log_error "OS non supporté: $ID"
             exit 1
         fi
     else
-        echo -e "${RD}Impossible de détecter l'OS. Arrêt.${NC}"
+        log_error "OS non détecté"
         exit 1
     fi
 }
 
 check_root_virt() {
-    [ "$EUID" -ne 0 ] && { echo -e "${RD}Exécutez en tant que root${NC}"; exit 1; }
-    [ "$(systemd-detect-virt 2>/dev/null)" = "openvz" ] && { echo -e "${RD}OpenVZ n'est pas supporté${NC}"; exit 1; }
+    if [ "$EUID" -ne 0 ]; then
+        log_error "Ce script doit être exécuté en tant que root"
+        exit 1
+    fi
+
+    if [ "$(systemd-detect-virt 2>/dev/null)" = "openvz" ]; then
+        log_error "OpenVZ n'est pas supporté"
+        exit 1
+    fi
 }
 
 setup_host_time() {
-    local localip hst host_entry
+    local localip hst
     localip=$(hostname -I | awk '{print $1}')
     hst=$(hostname)
-    host_entry=$(awk '{print $2}' /etc/hosts | grep -w "$hst" || true)
-    [ "$hst" != "$host_entry" ] && echo "$localip $hst" >> /etc/hosts
+
+    if ! grep -q "$hst" /etc/hosts 2>/dev/null; then
+        echo "$localip $hst" >> /etc/hosts
+    fi
+
     ln -fs "/usr/share/zoneinfo/$TIMEZONE" /etc/localtime 2>/dev/null || true
     sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1 || true
     sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1 || true
@@ -51,7 +77,7 @@ prepare_env() {
     touch /etc/xray/domain
 }
 
-function show_tns() {
+show_tns() {
     clear
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
     echo -e "${LN}┃${NC} ${BG}            TERMS & CONDITIONS PANEL            ${NC} ${LN}┃${NC}"
@@ -67,48 +93,38 @@ function show_tns() {
     echo -e "${LN}┃${NC} [02] • Refuser & Quitter"
     echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
     echo
-    read -rp "  Sélectionnez une option [1-2] : " opt
-    echo ""
-    case $opt in
-    1 | 01)
-        echo -e " ${GR}Vous avez accepté les Conditions d'Utilisation.${NC}"
-        echo -e " ${GR}Chargement...${NC}"
-        sleep 2
-        add_domain
-        ;;
-    2 | 02)
-        echo -e " ${RD}Vous avez refusé les termes. Annulation...${NC}"
-        exit 0
-        ;;
-    *)
-        echo -e "${RD} [ERREUR] Option invalide ! Utilisation de l'IP directe par défaut.${NC}"
-        echo "$MYIP" > /root/domain
-        echo "$MYIP" > /etc/xray/domain
-        sleep 2
-        ;;
+    read -rp " Sélectionnez une option [1-2] : " opt
+
+    case "$opt" in
+        1|01)
+            add_domain
+            ;;
+        2|02)
+            log_warn "Installation refusée par l'utilisateur"
+            exit 0
+            ;;
+        *)
+            log_warn "Option invalide, utilisation de l'IP par défaut"
+            echo "$MYIP" > /root/domain
+            echo "$MYIP" > /etc/xray/domain
+            ;;
     esac
 }
 
-function add_domain() {
-    clear
-    echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${LN}┃${NC} ${BG}                 DOMAIN PANEL                   ${NC} ${LN}┃${NC}"
-    echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-    echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo
+add_domain() {
     while true; do
-        read -rp " Entrez votre Domaine (Laissez vide pour utiliser l'IP : $MYIP) : " host
+        read -rp " Entrez votre domaine (laisser vide pour utiliser l'IP : $MYIP) : " host
         if [[ -z "$host" ]]; then
             host="$MYIP"
             break
         fi
-        
-        domain_ip=$(getent ahosts "$host" | awk '{print $1; exit}')
+
+        domain_ip=$(getent ahosts "$host" 2>/dev/null | awk '{print $1; exit}')
         if [[ "$domain_ip" == "$MYIP" ]]; then
             break
         else
-            echo -e "${RD} ✘ Le domaine $host pointe sur $domain_ip (IP VPS: $MYIP)${NC}"
-            read -rp " Voulez-vous continuer quand même avec $host ? (y/n) : " force_dom
+            echo -e "${RD}Le domaine $host pointe sur $domain_ip (IP VPS: $MYIP)${NC}"
+            read -rp " Voulez-vous continuer quand même ? (y/n) : " force_dom
             if [[ "$force_dom" == "y" || "$force_dom" == "Y" ]]; then
                 break
             fi
@@ -117,79 +133,97 @@ function add_domain() {
 
     echo "$host" > /root/domain
     echo "$host" > /etc/xray/domain
-    
-    echo -e "${GR} Domaine configuré avec succès : $host${NC}"
-    sleep 2
+    log_success "Domaine configuré: $host"
 }
 
 update_system() {
-    echo -e "${LN}[INFO] Mise à jour du système...${NC}"
+    log_info "Mise à jour du système..."
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -y
-    apt-get upgrade -y
+    apt-get update -y >> "$LOG_FILE" 2>&1 || return 1
+    apt-get upgrade -y >> "$LOG_FILE" 2>&1 || log_warn "Upgrade non bloquant"
 }
 
 install_packages() {
-    echo -e "${LN}[INFO] Installation des paquets nécessaires...${NC}"
-    apt-get install -y \
-    screen curl jq bzip2 gzip vnstat coreutils rsyslog iftop zip unzip git \
-    apt-transport-https build-essential wget figlet python3 make cmake \
-    net-tools nano sed gnupg bc libxml-parser-perl lsof \
-    dropbear fail2ban nginx certbot iptables-persistent
+    log_info "Installation des paquets..."
+    local packages="
+        screen curl jq bzip2 gzip vnstat coreutils rsyslog iftop zip unzip git
+        apt-transport-https build-essential wget figlet python3 make cmake
+        net-tools nano sed gnupg bc libxml-parser-perl lsof dropbear fail2ban
+        nginx certbot iptables-persistent
+    "
+
+    apt-get install -y $packages >> "$LOG_FILE" 2>&1 || return 1
 }
 
 run_scripts() {
-    scripts=("sshws.sh" "xray.sh" "vpn.sh" "websocket.sh" "setup_zivpn.sh" "setup_udp.sh" "validator.sh")
+    log_info "Téléchargement des scripts core..."
+    local scripts=("sshws.sh" "xray.sh" "vpn.sh" "websocket.sh" "setup_zivpn.sh" "setup_udp.sh" "validator.sh")
+    local failed=()
+
     for script in "${scripts[@]}"; do
         url="${SERVER_HOST}/core/${script}"
-        echo -e "${LN}[INFO] Téléchargement et exécution de $script...${NC}"
-        if wget -q "$url" -O "/root/$script"; then
-            chmod +x "/root/$script"
-            bash "/root/$script" || true
-            rm -f "/root/$script"
-        else
-            echo -e "${RD}[WARN] Impossible de récupérer $script depuis $url${NC}"
+        tmp_file="/tmp/${script}.$$"
+
+        log_info "Téléchargement: $script"
+        if ! wget -q --timeout=30 "$url" -O "$tmp_file"; then
+            log_error "Impossible de télécharger $script"
+            failed+=("$script")
+            continue
         fi
+
+        if [ ! -s "$tmp_file" ]; then
+            log_error "Fichier vide: $script"
+            failed+=("$script")
+            rm -f "$tmp_file"
+            continue
+        fi
+
+        if ! bash "$tmp_file" >> "$LOG_FILE" 2>&1; then
+            log_warn "Échec de l'exécution de $script"
+        else
+            log_success "$script exécuté"
+        fi
+
+        rm -f "$tmp_file"
     done
+
+    if [ ${#failed[@]} -gt 0 ]; then
+        log_warn "Scripts échoués: ${failed[*]}"
+    fi
 }
 
 install_menu() {
-    echo -e "${LN}[INFO] Installation des commandes du menu...${NC}"
-    for script in dns zivpn expiry domain iptools menu socks ssh status trojan vless vmess netguard port log tgbot uninstall update web fastdns; do
-        wget -q -O "/usr/local/sbin/$script" "${SERVER_HOST}/menu/${script}.sh" || true
-        chmod +x "/usr/local/sbin/$script" || true
+    log_info "Installation des commandes du menu..."
+    local scripts=("dns" "zivpn" "expiry" "domain" "iptools" "menu" "socks" "ssh" "status" "trojan" "vless" "vmess" "netguard" "port" "log" "tgbot" "uninstall" "update" "web" "fastdns")
+
+    for script in "${scripts[@]}"; do
+        dest="/usr/local/sbin/$script"
+        if wget -q --timeout=30 "${SERVER_HOST}/menu/${script}.sh" -O "$dest"; then
+            chmod +x "$dest" || true
+            log_success "Menu installé: $script"
+        else
+            log_warn "Menu non téléchargé: $script"
+        fi
     done
 }
 
 install_nexus_web() {
-    echo -e "${LN}[INFO] Vérification et installation du Web Panel Nexus...${NC}"
-    WORK_DIR="/tmp/nexus-build"
-    rm -rf "$WORK_DIR"
-    mkdir -p "$WORK_DIR"
+    log_info "Installation du Nexus Web Panel..."
+    local work="/tmp/nexus-build-$$"
+    rm -rf "$work"
+    mkdir -p "$work"
 
-    if git clone --depth 1 "https://github.com/${GITHUB_USER}/${GITHUB_REPO}.git" "$WORK_DIR/repo" >/dev/null 2>&1; then
-        if [ -f "$WORK_DIR/repo/nexus-web/install.sh" ]; then
-            cd "$WORK_DIR/repo/nexus-web"
-            bash install.sh || true
+    if git clone --depth 1 --quiet "https://github.com/${GITHUB_USER}/${GITHUB_REPO}.git" "$work/repo" >> "$LOG_FILE" 2>&1; then
+        if [ -f "$work/repo/nexus-web/install.sh" ]; then
+            cd "$work/repo/nexus-web"
+            bash install.sh >> "$LOG_FILE" 2>&1 || log_warn "Install.sh du web panel a échoué"
             cd /root
         fi
+    else
+        log_warn "Clon du dépôt pour Nexus Web impossible"
     fi
-    rm -rf "$WORK_DIR"
-}
 
-setup_autoreboot() {
-    grep -q "shutdown -r now" /etc/crontab || \
-    echo "0 0 * * * root /sbin/shutdown -r now" >> /etc/crontab
-}
-
-setup_autolog() {
-    grep -q "/usr/local/sbin/log" /etc/crontab || \
-    echo "*/30 * * * * root /usr/local/sbin/log" >> /etc/crontab
-}
-
-setup_autoexp() {
-    local cronjob="55 23 * * * root /usr/local/sbin/expiry"
-    grep -q "/usr/local/sbin/expiry" /etc/crontab || echo "$cronjob" >> /etc/crontab
+    rm -rf "$work"
 }
 
 setup_profile() {
@@ -206,50 +240,41 @@ fi
 EOF
 }
 
-cleanner() {
-    rm -f /root/*.sh 2>/dev/null
-    rm -f /root/*.pem 2>/dev/null
+setup_autoreboot() {
+    if ! grep -q "shutdown -r now" /etc/crontab 2>/dev/null; then
+        echo "0 0 * * * root /sbin/shutdown -r now" >> /etc/crontab
+    fi
+}
+
+setup_autolog() {
+    if ! grep -q "/usr/local/sbin/log" /etc/crontab 2>/dev/null; then
+        echo "*/30 * * * * root /usr/local/sbin/log" >> /etc/crontab
+    fi
+}
+
+setup_autoexp() {
+    local cronjob="55 23 * * * root /usr/local/sbin/expiry"
+    if ! grep -q "/usr/local/sbin/expiry" /etc/crontab 2>/dev/null; then
+        echo "$cronjob" >> /etc/crontab
+    fi
 }
 
 restart_services() {
-    echo -e "${LN}[*] Activation et redémarrage des services...${NC}"
-    SERVICES=(
-        ssh
-        dropbear
-        cron
-        nginx
-        vnstat
-        fail2ban
-        xray
-        zivpn
-        dnstt
-    )
-    for svc in "${SERVICES[@]}"; do
-        if systemctl list-unit-files | grep -q "^$svc.service"; then
-            systemctl enable "$svc" --now || true
-            systemctl restart "$svc" || true
+    local services=(ssh dropbear cron nginx vnstat fail2ban xray zivpn dnstt)
+    for svc in "${services[@]}"; do
+        if systemctl list-unit-files 2>/dev/null | grep -q "^${svc}.service"; then
+            systemctl enable "$svc" --now >> "$LOG_FILE" 2>&1 || true
+            systemctl restart "$svc" >> "$LOG_FILE" 2>&1 || true
         fi
     done
 }
 
-doty_completed() {
-    clear
-    domain=$(cat /etc/xray/domain 2>/dev/null || echo "$MYIP")
-    echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${LN}┃${NC} ${BG}              INSTALLATION TERMINÉE              ${NC} ${LN}┃${NC}"
-    echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-    echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${LN}┃${NC} ${GR}Félicitations ! THE_S TUNNEL PRO est prêt.${NC}"
-    echo -e "${LN}┃${NC}"
-    echo -e "${LN}┃${NC} Domaine : ${domain}"
-    echo -e "${LN}┃${NC} VPS IP  : ${MYIP}"
-    echo -e "${LN}┃${NC} Dépôt   : github.com/${GITHUB_USER}/${GITHUB_REPO}"
-    echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
-    echo
-}
-
 set_version() {
-    wget -q "$SERVER_HOST/version" -O /etc/version || echo "1.0.0" > /etc/version
+    if wget -q --timeout=30 "$SERVER_HOST/version" -O /etc/version; then
+        :
+    else
+        echo "1.0.0" > /etc/version
+    fi
 }
 
 enable_bbr() {
@@ -277,14 +302,22 @@ main() {
     enable_bbr
     restart_services
     set_version
-    doty_completed
-    cleanner
-    
+
+    clear
+    echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
+    echo -e "${LN}┃${NC} ${BG}              INSTALLATION TERMINÉE              ${NC} ${LN}┃${NC}"
+    echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+    echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
+    echo -e "${LN}┃${NC} ${GR}Félicitations ! THE_S TUNNEL PRO est prêt.${NC}"
+    echo -e "${LN}┃${NC}"
+    echo -e "${LN}┃${NC} 🌐 Domaine : $(cat /etc/xray/domain 2>/dev/null || echo "$MYIP")"
+    echo -e "${LN}┃${NC} 🖥️  VPS IP  : $MYIP"
+    echo -e "${LN}┃${NC} 📦 Dépôt   : github.com/${GITHUB_USER}/${GITHUB_REPO}"
+    echo -e "${LN}┃${NC} 📝 Log    : $LOG_FILE"
+    echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+    echo
     echo -e "${GR}Installation achevée. Tapez 'menu' pour accéder au panneau.${NC}"
+    exit 0
 }
 
-main
-EOF
-
-chmod +x /root/nexus.sh
-bash /root/nexus.sh
+main "$@"

@@ -2,14 +2,15 @@
 set -euo pipefail
 
 clear
+
 export SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
 export UDP_DIR="/etc/udp-custom"
 export SERVICE_FILE="/etc/systemd/system/udp-custom.service"
 
 update_system() {
-    apt update -y
-    apt upgrade -y
-    apt install -y wget unzip
+    apt-get update -y
+    apt-get upgrade -y
+    apt-get install -y wget unzip
 }
 
 install_udp_custom() {
@@ -25,7 +26,9 @@ install_udp_custom() {
 
 create_service() {
     local exclude_arg=""
-    [ -n "${1:-}" ] && exclude_arg="-exclude $1"
+    if [ -n "${1:-}" ]; then
+        exclude_arg="-exclude $1"
+    fi
 
     cat > "$SERVICE_FILE" <<EOF
 [Unit]
@@ -44,8 +47,8 @@ EOF
 
 start_service() {
     systemctl daemon-reload
-    systemctl enable udp-custom &>/dev/null || true
-    systemctl restart udp-custom &>/dev/null || true
+    systemctl enable udp-custom >/dev/null 2>&1 || true
+    systemctl restart udp-custom >/dev/null 2>&1 || true
 }
 
 update_system

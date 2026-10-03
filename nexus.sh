@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 clear
 
 export LN='\033[34m'
@@ -149,7 +150,7 @@ install_packages() {
         screen curl jq bzip2 gzip vnstat coreutils rsyslog iftop zip unzip git
         apt-transport-https build-essential wget figlet python3 make cmake
         net-tools nano sed gnupg bc libxml-parser-perl lsof dropbear fail2ban
-        nginx certbot iptables-persistent
+        nginx certbot iptables-persistent ca-certificates
     "
 
     apt-get install -y $packages >> "$LOG_FILE" 2>&1 || return 1
@@ -282,6 +283,43 @@ enable_bbr() {
     sysctl -w net.ipv4.tcp_congestion_control=bbr >/dev/null 2>&1 || true
 }
 
+verify_installation() {
+    local errors=0
+
+    for svc in ssh nginx xray; do
+        if systemctl is-active --quiet "$svc" 2>/dev/null; then
+            echo "[OK] $svc running"
+        else
+            echo "[ERROR] $svc not running"
+            errors=$((errors + 1))
+        fi
+    done
+
+    for port in 22 80 443 1194 5667; do
+        if ss -lnt | awk '{print $4}' | grep -q ":$port$"; then
+            echo "[OK] port $port listening"
+        else
+            echo "[ERROR] port $port missing"
+            errors=$((errors + 1))
+        fi
+    done
+
+    if [ -f /etc/xray/xray.crt ] && [ -f /etc/xray/xray.key ]; then
+        echo "[OK] SSL certs present"
+    else
+        echo "[ERROR] SSL certs missing"
+        errors=$((errors + 1))
+    fi
+
+    if [ "$errors" -gt 0 ]; then
+        echo "[FATAL] Installation has errors"
+        return 1
+    fi
+
+    echo "[OK] Installation validation passed"
+    return 0
+}
+
 main() {
     exec < /dev/tty 2>/dev/null || true
 
@@ -303,10 +341,12 @@ main() {
     restart_services
     set_version
 
+    verify_installation || exit 1
+
     clear
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
     echo -e "${LN}┃${NC} ${BG}              INSTALLATION TERMINÉE              ${NC} ${LN}┃${NC}"
-    echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
+    echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
     echo -e "${LN}┃${NC} ${GR}Félicitations ! THE_S TUNNEL PRO est prêt.${NC}"
     echo -e "${LN}┃${NC}"

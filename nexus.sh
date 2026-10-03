@@ -1,3 +1,4 @@
+cat << 'EOF' > /root/nexus.sh
 #!/bin/bash
 clear
 export LN='\033[34m'
@@ -17,7 +18,7 @@ readonly TIMEZONE="Africa/Douala"
 check_os() {
     if [ -f /etc/os-release ]; then
         . /etc/os-release
-        if [[ "$ID" == "ubuntu" \vert{}\vert{} "$ID" == "debian" ]]; then
+        if [[ "$ID" == "ubuntu" || "$ID" == "debian" ]]; then
             return 0  
         else
             echo -e "${RD}Système non supporté: $ID. Arrêt.${NC}"
@@ -38,8 +39,8 @@ setup_host_time() {
     local localip hst host_entry
     localip=$(hostname -I | awk '{print $1}')
     hst=$(hostname)
-    host_entry=$(awk '{print $2}' /etc/hosts \vert{} grep -w "$hst" || true)
-    [ "$hst" != "$host_entry" ] && echo "$localip$hst" >> /etc/hosts
+    host_entry=$(awk '{print $2}' /etc/hosts | grep -w "$hst" || true)
+    [ "$hst" != "$host_entry" ] && echo "$localip $hst" >> /etc/hosts
     ln -fs "/usr/share/zoneinfo/$TIMEZONE" /etc/localtime 2>/dev/null || true
     sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1 || true
     sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1 || true
@@ -53,7 +54,7 @@ prepare_env() {
 function show_tns() {
     clear
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${LN}┃${NC} ${BG}            TERMS & CONDITIONS PANEL${NC} ${LN}┃${NC}"
+    echo -e "${LN}┃${NC} ${BG}            TERMS & CONDITIONS PANEL            ${NC} ${LN}┃${NC}"
     echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
     echo -e "${LN}┃${NC} ${GR}Bienvenue sur THE_S TUNNEL PRO / NEXUS SERVICES !${NC}"
@@ -91,7 +92,7 @@ function show_tns() {
 function add_domain() {
     clear
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${LN}┃${NC} ${BG}                 DOMAIN PANEL${NC} ${LN}┃${NC}"
+    echo -e "${LN}┃${NC} ${BG}                 DOMAIN PANEL                   ${NC} ${LN}┃${NC}"
     echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
     echo
@@ -106,9 +107,9 @@ function add_domain() {
         if [[ "$domain_ip" == "$MYIP" ]]; then
             break
         else
-            echo -e "${RD} ✘ Le domaine $host pointe sur$domain_ip (IP VPS: $MYIP)${NC}"
+            echo -e "${RD} ✘ Le domaine $host pointe sur $domain_ip (IP VPS: $MYIP)${NC}"
             read -rp " Voulez-vous continuer quand même avec $host ? (y/n) : " force_dom
-            if [[ "$force_dom" == "y" \vert{}\vert{} "$force_dom" == "Y" ]]; then
+            if [[ "$force_dom" == "y" || "$force_dom" == "Y" ]]; then
                 break
             fi
         fi
@@ -233,15 +234,15 @@ restart_services() {
 
 doty_completed() {
     clear
-    domain=$(cat /etc/xray/domain 2>/dev/null \vert{}\vert{} echo "$MYIP")
+    domain=$(cat /etc/xray/domain 2>/dev/null || echo "$MYIP")
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${LN}┃${NC}${BG}              INSTALLATION TERMINÉE              ${NC} ${LN}┃${NC}"
+    echo -e "${LN}┃${NC} ${BG}              INSTALLATION TERMINÉE              ${NC} ${LN}┃${NC}"
     echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
     echo -e "${LN}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓${NC}"
-    echo -e "${LN}┃${NC}${GR}Félicitations ! THE_S TUNNEL PRO est prêt.${NC}"
+    echo -e "${LN}┃${NC} ${GR}Félicitations ! THE_S TUNNEL PRO est prêt.${NC}"
     echo -e "${LN}┃${NC}"
-    echo -e "${LN}┃${NC} Domaine :${domain}"
-    echo -e "${LN}┃${NC} VPS IP  :${MYIP}"
+    echo -e "${LN}┃${NC} Domaine : ${domain}"
+    echo -e "${LN}┃${NC} VPS IP  : ${MYIP}"
     echo -e "${LN}┃${NC} Dépôt   : github.com/${GITHUB_USER}/${GITHUB_REPO}"
     echo -e "${LN}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛${NC}"
     echo
@@ -257,7 +258,6 @@ enable_bbr() {
 }
 
 main() {
-    # Intercept TTY pour éviter le crash du `read`
     exec < /dev/tty 2>/dev/null || true
 
     check_root_virt
@@ -284,3 +284,7 @@ main() {
 }
 
 main
+EOF
+
+chmod +x /root/nexus.sh
+bash /root/nexus.sh

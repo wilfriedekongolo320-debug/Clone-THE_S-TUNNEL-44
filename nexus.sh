@@ -72,7 +72,11 @@ check_os() {
 
 check_root_virt() {
     [ "$EUID" -ne 0 ] && { echo -e " ${C_RED}✖ Exécutez en tant que root.${C_RESET}"; exit 1; }
-    [ "$(systemd-detect-virt)" = "openvz" ] && { echo -e " ${C_RED}✖ OpenVZ n'est pas supporté.${C_RESET}"; exit 1; }
+    
+    # MODIFICATION: Avertissement simple sans bloquer l'installation avec exit 1
+    if [ "$(systemd-detect-virt)" = "openvz" ]; then
+        echo -e " ${C_GOLD}[!] Attention: VPS OpenVZ détecté. Poursuite de l'installation...${C_RESET}"
+    fi
 }
 
 setup_host_time() {
@@ -82,8 +86,8 @@ setup_host_time() {
     host_entry=$(awk '{print $2}' /etc/hosts | grep -w "$hst" || true)
     [ "$hst" != "$host_entry" ] && echo "$localip $hst" >> /etc/hosts
     ln -fs "/usr/share/zoneinfo/$TIMEZONE" /etc/localtime
-    sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1
-    sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1
+    sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1 || true
+    sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1 || true
 }
 
 prepare_env() {
@@ -101,7 +105,7 @@ function show_tns() {
     echo ""
     echo -e "  ${C_GRAY}[*] Veuillez lire attentivement les termes ci-dessous :${C_RESET}"
     echo -e "  ${C_GRAY}[*] Service fourni 'tel quel', sans garantie d'aucune sorte.${C_RESET}"
-    echo -e "  ${C_GRAY}[*] Utilisation strictement interdite pour activités illégales.${C_RESET}"
+    echo -e "  ${C_GRAY}[*] Utilisation strictly interdite pour activités illégales.${C_RESET}"
     echo -e "  ${C_GRAY}[*] THE_S Team n'est pas responsable de la perte de données.${C_RESET}"
     echo -e "  ${C_GRAY}[*] Vous devez respecter les lois locales en vigueur.${C_RESET}"
     echo -e "  ${C_GRAY}[*] Termes modifiables sans préavis.${C_RESET}"
@@ -430,11 +434,12 @@ set_version() {
 
 enable_bbr() {
     echo -e "  ${C_CYAN}[INFO] Activation de TCP BBR...${C_RESET}"
-    sysctl -w net.core.default_qdisc=fq >/dev/null 2>&1
-    sysctl -w net.ipv4.tcp_congestion_control=bbr >/dev/null 2>&1
+    # MODIFICATION: BBR ne fonctionne pas sur OpenVZ, ignore silencieusement
+    sysctl -w net.core.default_qdisc=fq >/dev/null 2>&1 || true
+    sysctl -w net.ipv4.tcp_congestion_control=bbr >/dev/null 2>&1 || true
     grep -q "net.core.default_qdisc" /etc/sysctl.conf || echo "net.core.default_qdisc = fq" >> /etc/sysctl.conf
     grep -q "net.ipv4.tcp_congestion_control" /etc/sysctl.conf || echo "net.ipv4.tcp_congestion_control = bbr" >> /etc/sysctl.conf
-    sysctl -p >/dev/null 2>&1
+    sysctl -p >/dev/null 2>&1 || true
 }
 
 main() {

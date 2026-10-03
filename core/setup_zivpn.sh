@@ -2,10 +2,16 @@
 set -euo pipefail
 
 clear
+
 RED='\033[31m'
 GREEN='\033[32m'
 BLUE='\033[34m'
 NC='\033[0m'
+
+if [ "${EUID:-$(id -u)}" -ne 0 ]; then
+    echo -e "${RED}❌ ERREUR: Ce script doit être exécuté en tant que ROOT${NC}"
+    exit 1
+fi
 
 export SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
 
@@ -42,10 +48,11 @@ generate_certificates() {
 
 create_systemd_service() {
     echo -e "${BLUE}Creating systemd service...${NC}"
-    cat <<EOF > /etc/systemd/system/zivpn.service
+    cat > /etc/systemd/system/zivpn.service <<'EOF'
 [Unit]
 Description=ZIVPN UDP VPN Server
 After=network.target
+
 [Service]
 Type=simple
 User=root
@@ -57,6 +64,7 @@ Environment=ZIVPN_LOG_LEVEL=info
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW
 NoNewPrivileges=true
+
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -65,14 +73,14 @@ EOF
 enable_and_start_service() {
     echo -e "${BLUE}Enabling and starting ZIVPN service...${NC}"
     systemctl daemon-reload
-    systemctl enable zivpn.service
-    systemctl start zivpn.service
+    systemctl enable --now zivpn.service
 }
 
 configure_firewall() {
     echo -e "${BLUE}Configuring firewall rules...${NC}"
     local iface
     iface=$(ip -4 route ls 2>/dev/null | grep default | grep -Po '(?<=dev )(\S+)' | head -1 || true)
+
     if [ -n "$iface" ]; then
         iptables -t nat -A PREROUTING -i "$iface" -p udp --dport 6000:19999 -j DNAT --to-destination :5667 || true
     fi

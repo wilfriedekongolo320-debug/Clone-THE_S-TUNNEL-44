@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 export DEBIAN_FRONTEND=noninteractive
 export SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
@@ -12,8 +12,6 @@ setup_variables() {
 }
 
 set_simple_password() {
-    # Ne plus modifier le fichier PAM avec une clé opaque ou un mot de passe codé
-    # Laisser la configuration système standard
     if [ -f /etc/pam.d/common-password ]; then
         if ! grep -q "pam_unix.so obscure sha512" /etc/pam.d/common-password; then
             echo "password [success=1 default=ignore] pam_unix.so obscure sha512" >> /etc/pam.d/common-password

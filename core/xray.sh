@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 export SERVER_HOST="https://raw.githubusercontent.com/wilfriedekongolo320-debug/Clone-THE_S-TUNNEL-44/main"
 export DEBIAN_FRONTEND=noninteractive
@@ -23,12 +23,18 @@ setup_environment() {
 
 setup_time() {
     log "Setting system time"
+    local tz
     if [ -f /etc/timezone ]; then
         tz=$(cat /etc/timezone)
+    elif [ -f /etc/localtime ]; then
+        tz=$(readlink /etc/localtime 2>/dev/null || echo "UTC")
     else
         tz="UTC"
     fi
-    timedatectl set-timezone "$tz" 2>/dev/null || ln -snf "/usr/share/zoneinfo/$tz" /etc/localtime
+
+    if command -v timedatectl >/dev/null 2>&1; then
+        timedatectl set-timezone "$tz" 2>/dev/null || ln -snf "/usr/share/zoneinfo/$tz" /etc/localtime
+    fi
 }
 
 install_dependencies() {
@@ -103,9 +109,11 @@ configure_nginx() {
     domain=$(cat /root/domain 2>/dev/null || cat /etc/xray/domain 2>/dev/null || err "Domain file not found!")
     wget -q -O /etc/nginx/nginx.conf "${SERVER_HOST}/module/nginx.conf"
 
-    sed -i "s/server_name \\*\\.xxxxxx;/server_name *.$domain;/" /etc/nginx/nginx.conf
-    sed -i "s/server_name xxxxxx;/server_name $domain;/" /etc/nginx/nginx.conf
-    sed -i "s#https://xxxxxx:86/#https://$domain:86/#" /etc/nginx/nginx.conf
+    if grep -q "xxxxxx" /etc/nginx/nginx.conf; then
+        sed -i "s/server_name \\*\\.xxxxxx;/server_name *.$domain;/" /etc/nginx/nginx.conf
+        sed -i "s/server_name xxxxxx;/server_name $domain;/" /etc/nginx/nginx.conf
+        sed -i "s#https://xxxxxx:86/#https://$domain:86/#" /etc/nginx/nginx.conf
+    fi
 
     chmod 644 /etc/nginx/nginx.conf
     chown root:root /etc/nginx/nginx.conf

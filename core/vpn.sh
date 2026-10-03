@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 export DEBIAN_FRONTEND=noninteractive
 export MYIP=$(wget -qO- https://api.ipify.org || echo "127.0.0.1")

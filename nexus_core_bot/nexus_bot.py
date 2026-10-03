@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import json
 import logging
 import os
@@ -13,8 +14,11 @@ MENU_IMAGE_URL = "https://raw.githubusercontent.com/wilfriedekongolo320-debug/Cl
 
 def load_config():
     if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        try:
+            with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            return {}
     return {}
 
 def get_bot_token():
@@ -57,8 +61,8 @@ def cmd_status(message):
     try:
         output = subprocess.check_output(["systemctl", "status"], text=True, stderr=subprocess.STDOUT)
         bot.reply_to(message, output)
-    except Exception as e:
-        bot.reply_to(message, f"Erreur: {str(e)}")
+    except Exception as exc:
+        bot.reply_to(message, f"Erreur: {exc}")
 
 @bot.message_handler(commands=['server_info'])
 def cmd_server_info(message):
@@ -66,10 +70,16 @@ def cmd_server_info(message):
         info = []
         info.append(f"Hostname: <code>{subprocess.check_output(['hostname'], text=True).strip()}</code>")
         info.append(f"IP: <code>{subprocess.check_output(['hostname', '-I'], text=True).strip()}</code>")
-        info.append(f"OS: <code>{subprocess.check_output(['cat', '/etc/os-release'], text=True).split('PRETTY_NAME=')[-1].splitlines()[0].strip().strip('\"')}</code>")
+        os_release = subprocess.check_output(['cat', '/etc/os-release'], text=True)
+        pretty_name = ""
+        for line in os_release.splitlines():
+            if line.startswith("PRETTY_NAME="):
+                pretty_name = line.split("=", 1)[1].strip().strip('"')
+                break
+        info.append(f"OS: <code>{pretty_name}</code>")
         bot.reply_to(message, "\n".join(info))
-    except Exception as e:
-        bot.reply_to(message, f"Erreur: {str(e)}")
+    except Exception as exc:
+        bot.reply_to(message, f"Erreur: {exc}")
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_handler(call):
@@ -77,8 +87,8 @@ def callback_handler(call):
         try:
             out = subprocess.check_output(["systemctl", "status"], text=True, stderr=subprocess.STDOUT)
             bot.send_message(call.message.chat.id, out)
-        except Exception as e:
-            bot.send_message(call.message.chat.id, f"Erreur: {str(e)}")
+        except Exception as exc:
+            bot.send_message(call.message.chat.id, f"Erreur: {exc}")
     elif call.data == "server_info":
         bot.send_message(call.message.chat.id, "Serveur prêt.")
 

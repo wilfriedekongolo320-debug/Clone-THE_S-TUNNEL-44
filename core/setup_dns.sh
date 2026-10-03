@@ -1,4 +1,6 @@
 #!/bin/bash
+set -euo pipefail
+
 clear
 export LN='\033[34m'
 export BG='\033[44m'
@@ -25,7 +27,7 @@ clear
 echo "Installing Go (golang)..."
 rm -rf /usr/bin/go
 wget -q https://go.dev/dl/go1.22.0.linux-amd64.tar.gz
-sudo tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz
+tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz
 rm -f /root/go1.22.0.linux-amd64.tar.gz
 export PATH="/usr/local/go/bin:$PATH"
 
